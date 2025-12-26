@@ -1,0 +1,18 @@
+-------------------------
+ Student Contributions
+-------------------------
+
+2025
+- Frankie Astori added "follow unit" feature  (v2.6.7)
+- Frankie Astori added click-on-minimap feature (v2.6.7)
+
+2024
+- George Feibusch implemented KD trees to improve performance when searching for objects  (v2.0.0)
+
+2022
+
+- Josh Lin fixed a major bug with the object acceleration physics, making it smoother + more realistic (v0.9.6)
+- Josh Garofalo identified some old code that caused overflow damage from plating to be doubled  (v0.9.8)
+- Alex Petrovskikh found a dupe bug related to collecting minerals on the same frame (v0.10.1)
+- Henry Zhang found a bug related to collecting minerals outside of distance boundaries (v0.13.2)
+- Josh Garofalo found a bug causing double damage after the difficulty bonus damage scaling was added (v0.16.0)
