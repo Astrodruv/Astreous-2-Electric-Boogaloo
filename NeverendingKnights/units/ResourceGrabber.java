@@ -1,0 +1,41 @@
+package teams.student.NeverendingKnights.units;
+
+import components.weapon.economy.Collector;
+import objects.entity.unit.Frame;
+import objects.entity.unit.Model;
+import objects.entity.unit.Style;
+import objects.resource.Resource;
+import teams.student.NeverendingKnights.NeverendingKnightsUnit;
+
+public class ResourceGrabber extends NeverendingKnightsUnit {
+
+    public void design()
+    {
+        setFrame(Frame.MEDIUM);
+        setModel(Model.PROTOTYPE);
+        setStyle(Style.ORB);
+        add(Collector.class);
+        add(Collector.class);
+//        add(Plating.class);
+    }
+
+    public void action()
+    {
+        moveTo(getHomeBase().getCenterX(), getHomeBase().getCenterY());
+
+        Resource r = getNearestResource();
+        Resource r2 = getNearestResource();
+
+        ((Collector) getWeaponOne()).use(r);
+
+        for (Resource res : getResourcesInRadius(getHomeBase().getWidth(), this)){
+            if (res != r){
+                r2 = res;
+            }
+        }
+        ((Collector) getWeaponTwo()).use(r2);
+
+        deposit();
+    }
+
+}
