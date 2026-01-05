@@ -90,21 +90,35 @@ public abstract class NeverendingKnightsUnit extends Unit
     }
 
     public ArrayList<Node> findBestChainOfNodes(){
-        // must somehow get the closest chain of nodes to each other (sort multiple times)
         ArrayList<Node> nearNodes = new ArrayList<>();
         ArrayList<Node> listOfNodes = new ArrayList<>();
 
         for (Node n : NodeManager.getNodes()) {
-//            if ((getPlayer().isLeftPlayer() && n.getX() < 0) || (getPlayer().isRightPlayer() && n.getX() > 0)){
+            if ((n.getX() < 0 && getPlayer().isLeftPlayer()) || (n.getX() > 0 && getPlayer().isRightPlayer())){
                 nearNodes.add(n);
-//            }
+            }
         }
 
         nearNodes.sort((n1, n2) -> Float.compare(n1.getDistance(getHomeBase()), n2.getDistance(getHomeBase())));
         nearNodes.sort((n1,n2) -> Float.compare(n1.getDistance(nearNodes.getFirst()), n2.getDistance(nearNodes.getFirst())));
 
-        listOfNodes.add(nearNodes.getFirst());
-        listOfNodes.add(nearNodes.get(1));
+        if (!nearNodes.isEmpty() && nearNodes.size() > 1) {
+            listOfNodes.add(nearNodes.getFirst());
+            listOfNodes.add(nearNodes.get(1));
+            nearNodes.removeFirst();
+        }
+
+        if (!nearNodes.isEmpty()) {
+            for (int i = 0; i < nearNodes.size(); i++) {
+                if (nearNodes.size() > 2) {
+                    nearNodes.sort((n1, n2) -> Float.compare(n1.getDistance(nearNodes.getFirst()), n2.getDistance(nearNodes.getFirst())));
+                    listOfNodes.add(nearNodes.get(1));
+                    nearNodes.removeFirst();
+                    i--;
+                }
+            }
+        }
+
 
         if (!listOfNodes.isEmpty()){
             return listOfNodes;
@@ -131,6 +145,18 @@ public abstract class NeverendingKnightsUnit extends Unit
         }
 
         else return null;
+    }
+
+    public ArrayList<Node> updateNodeChain(ArrayList<Node> nodeChain){
+        ArrayList<Node> newNodeChain = new ArrayList<>();
+
+        if (nodeChain != null) {
+            for (Node n : nodeChain) {
+                if (n.isAlive() && n.isInBounds()) newNodeChain.add(n);
+            }
+        }
+
+        return newNodeChain;
     }
 	
 	public void draw(Graphics g) 
