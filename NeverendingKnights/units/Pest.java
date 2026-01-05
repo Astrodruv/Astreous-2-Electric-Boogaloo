@@ -76,7 +76,7 @@ public class Pest extends NeverendingKnightsUnit
     }
 
     public void draw(Graphics g){
-        dbgMessage(stage);
+//        dbgMessage(stage);
         g.setColor(Color.white);
         if (unitToAttack != null){
             g.drawLine(getCenterX(), getCenterY(), unitToAttack.getCenterX(), unitToAttack.getCenterY());

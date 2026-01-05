@@ -28,7 +28,7 @@ public class ResourceAssigner {
         if (homeBase == null) homeBase = player.getMyBase();
         resourcesByDistToHomeBase.clear();
         for (Resource r : ResourceManager.getResources()) {
-            if (!assignedResources.contains(r) && !Gatherer.allDumpedResources.contains(r)) resourcesByDistToHomeBase.add(r);
+            if (!assignedResources.contains(r) && !Gatherer.allDumpedResources.contains(r) && r.isInBounds()) resourcesByDistToHomeBase.add(r);
         }
         resourcesByDistToHomeBase.sort((r1, r2) -> Float.compare(r1.getDistance(homeBase), r2.getDistance(homeBase)));
     }
