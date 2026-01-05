@@ -9,6 +9,7 @@ import objects.resource.Resource;
 import org.newdawn.slick.Color;
 import org.newdawn.slick.Graphics;
 import org.newdawn.slick.geom.Point;
+import player.Player;
 import teams.student.NeverendingKnights.NeverendingKnights;
 import teams.student.NeverendingKnights.NeverendingKnightsUnit;
 
@@ -65,7 +66,18 @@ public class Gatherer extends NeverendingKnightsUnit
 //            if (interceptionPoint == null) interceptionPoint = new Point((float) (getHomeBase().getCenterX() + (getSpeedX() * time1) + (0.5f * getHomeBase().getAcceleration() * Math.pow(time1, 2))), getHomeBase().getCenterY());
 
             if (timeToGainSpeed < 600 && getDistance(getHomeBase()) > 250){
-                moveTo(getHomeBase()); //interceptionPoint - make it throw to interceptionPoint, but also group around clusters and the home base as well
+                float distance = getDistance(getHomeBase());
+                if (getHomeBase().getSpeedX() != 0){
+                    if (getPlayer().isLeftPlayer()) {
+                        moveTo(getHomeBase().getCenterX() + (distance / 25), getHomeBase().getCenterY());
+                    }
+                    if (getPlayer().isRightPlayer()){
+                        moveTo(getHomeBase().getCenterX() - (distance / 25), getHomeBase().getCenterY());
+                    }
+                }
+                else{
+                    moveTo(getHomeBase());
+                }
                 timeToGainSpeed++;
             }
             else {
@@ -117,26 +129,19 @@ public class Gatherer extends NeverendingKnightsUnit
 	}
 
     public void draw(Graphics g){
-        dbgMessage(assignedResources.size());
-        g.setColor(Color.white);
-        g.drawOval(getCenterX() - 25, getCenterY() - 25, 50, 50);
-        g.setColor(Color.green);
-        if (interceptionPoint != null) {
-            g.drawLine(getCenterX(), getCenterY(), interceptionPoint.getX(), interceptionPoint.getY());
-        }
-        g.setColor(Color.blue); // Make random to easily tell colors apart
+        g.setColor(new Color(0,0,255));
         if (!assignedResources.isEmpty() && assignedResources.getFirst() != null) {
             g.drawLine(getCenterX(), getCenterY(), assignedResources.getFirst().getCenterX(), assignedResources.getFirst().getCenterY());
         }
-        g.setColor(Color.blue.brighter());
+        g.setColor(new Color(0,0,225));
         if (!assignedResources.isEmpty() && assignedResources.size() > 1 && assignedResources.get(1) != null){
             g.drawLine(assignedResources.getFirst().getCenterX(), assignedResources.getFirst().getCenterY(), assignedResources.get(1).getCenterX(), assignedResources.get(1).getCenterY());
         }
-        g.setColor(Color.blue.brighter().brighter());
+        g.setColor(new Color(0,0,200));
         if (!assignedResources.isEmpty() && assignedResources.size() > 2 && assignedResources.get(2) != null){
             g.drawLine(assignedResources.get(1).getCenterX(), assignedResources.get(1).getCenterY(), assignedResources.get(2).getCenterX(), assignedResources.get(2).getCenterY());
         }
-        g.setColor(Color.blue.brighter().brighter().brighter());
+        g.setColor(new Color(0,0,175));
         if (!assignedResources.isEmpty() && assignedResources.size() > 3 && assignedResources.get(3) != null){
             g.drawLine(assignedResources.get(2).getCenterX(), assignedResources.get(2).getCenterY(), assignedResources.get(3).getCenterX(), assignedResources.get(3).getCenterY());
         }

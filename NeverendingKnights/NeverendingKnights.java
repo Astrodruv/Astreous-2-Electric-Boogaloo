@@ -41,8 +41,8 @@ public class NeverendingKnights extends Player
 			buildUnit(Gatherer.class);
 		}
 
-        if (countUnit(this, Fighter.class) < 20){
-            buildUnit(Fighter.class);
+        if (countUnit(this, Pest.class) < 20){
+            buildUnit(Pest.class);
         }
 //		else if(getFleetValueUnitPercentage(Miner.class) < .2f)
 //		{

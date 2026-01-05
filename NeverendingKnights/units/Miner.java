@@ -20,9 +20,8 @@ public class Miner extends NeverendingKnightsUnit
 	}
 
 	public void action() {
-        dbgMessage(getWeaponOne().getDamage());
-        if (MinerBuffer.closestNode != null) {
-            harvest(MinerBuffer.closestNode, getWeaponOne());
+        if (MinerBuffer.bestNode != null) {
+            harvest(MinerBuffer.bestNode, getWeaponOne()); // Must mine in clusters
         }
         else harvest(getNearestNode(), getWeaponOne());
 	}

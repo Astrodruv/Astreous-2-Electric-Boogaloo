@@ -42,21 +42,11 @@ public class ResourceAssigner {
             if (!resourcesByDistToHomeBase.isEmpty()) {
                 Resource r = resourcesByDistToHomeBase.getFirst();
 
-                if (g.getThreeClosestResourcesToResource(r) != null && !g.getThreeClosestResourcesToResource(r).isEmpty()) {
-                    ArrayList<Resource> closestResources = g.getThreeClosestResourcesToResource(r);
-
-                    assignedResources.add(closestResources.get(0));
-                    assignedResources.add(closestResources.get(1));
-                    assignedResources.add(closestResources.get(2));
-
-                    g.assignedResources.add(closestResources.get(0));
-                    g.assignedResources.add(closestResources.get(1));
-                    g.assignedResources.add(closestResources.get(2));
-
-                    resourcesByDistToHomeBase.remove(closestResources.get(0));
-                    resourcesByDistToHomeBase.remove(closestResources.get(1));
-                    resourcesByDistToHomeBase.remove(closestResources.get(2));
-
+                if (g.getClosestResourcesToResource(r) != null && !g.getClosestResourcesToResource(r).isEmpty()) {
+                    ArrayList<Resource> closestResources = g.getClosestResourcesToResource(r);
+                    assignedResources.addAll(closestResources);
+                    g.assignedResources.addAll(closestResources);
+                    resourcesByDistToHomeBase.removeAll(closestResources);
                 }
 
                 if (!resourcesByDistToHomeBase.isEmpty()) {
