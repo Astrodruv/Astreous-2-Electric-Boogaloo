@@ -9,7 +9,6 @@ import objects.resource.Resource;
 import org.newdawn.slick.Color;
 import org.newdawn.slick.Graphics;
 import org.newdawn.slick.geom.Point;
-import player.Player;
 import teams.student.NeverendingKnights.NeverendingKnights;
 import teams.student.NeverendingKnights.NeverendingKnightsUnit;
 

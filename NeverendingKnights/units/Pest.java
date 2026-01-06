@@ -15,18 +15,18 @@ public class Pest extends NeverendingKnightsUnit
     public String stage;
     private Unit unitToAttack;
 
-	public void design()
-	{	
-		setFrame(Frame.LIGHT);
-		setModel(Model.DESTROYER);
-		setStyle(Style.DAGGER);
+    public void design()
+    {
+        setFrame(Frame.LIGHT);
+        setModel(Model.DESTROYER);
+        setStyle(Style.DAGGER);
 
-		add(Laser.class);
-		add(Shield.class);
+        add(Laser.class);
+        add(Shield.class);
 
         stage = "Waiting";
         unitToAttack = null;
-	}
+    }
 
     public void action() {
         unitToAttack = getLowestSafeEnemyWorker(getWeaponOne().getMaxRange() * 5);

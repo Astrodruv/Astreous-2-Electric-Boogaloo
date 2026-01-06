@@ -3,59 +3,306 @@ package teams.student.NeverendingKnights;
 import components.weapon.Weapon;
 import components.weapon.economy.Collector;
 import components.weapon.economy.Drillbeam;
+import components.weapon.energy.HeavyLaser;
+import components.weapon.energy.Laser;
+import components.weapon.explosive.HeavyMissile;
+import components.weapon.explosive.Missile;
+import components.weapon.kinetic.Autocannon;
+import components.weapon.kinetic.HeavyAutocannon;
+import components.weapon.utility.*;
+import engine.Values;
 import objects.entity.node.Node;
 import objects.entity.node.NodeManager;
+import objects.entity.unit.BaseShip;
+import objects.entity.unit.Model;
 import objects.entity.unit.Unit;
 import objects.resource.Resource;
 import objects.resource.ResourceManager;
+import org.newdawn.slick.Color;
 import org.newdawn.slick.Graphics;
 import teams.student.NeverendingKnights.units.Gatherer;
+import teams.student.NeverendingKnights.units.combat.CombatManager;
+import teams.student.NeverendingKnights.units.combat.strategies.CoordinateTargetedEnemyStrategy;
+import teams.student.NeverendingKnights.units.combat.strategies.ProtectGathererStrategy;
+import teams.student.NeverendingKnights.units.combat.strategies.RallyStrategy;
 
 import java.util.ArrayList;
 import java.util.Comparator;
 
 public abstract class NeverendingKnightsUnit extends Unit
-{	
-	public NeverendingKnights getPlayer()
-	{
-		return (NeverendingKnights) super.getPlayer();
-	}
-	
-	public void action() 
-	{
-		attack(getWeaponOne());
-		attack(getWeaponTwo());
-		movement();
-	}
-		
-	public void attack(Weapon w)
-	{
-		Unit enemy = getNearestEnemy();
+{
+    protected CombatManager combatManager;
+    protected Unit currentTarget;
+    protected Unit workerToProtect;
+    public NeverendingKnights getPlayer()
+    {
+        return (NeverendingKnights) super.getPlayer();
+    }
 
-		if(enemy != null && w != null)
-		{
-			w.use(enemy);	
-		}
-	}
-		
-	public void movement()
-	{
-		Unit enemy = getNearestEnemy();
 
-		if(enemy != null)
-		{		
-			if(getDistance(enemy) > getMaxRange())
-			{
-				moveTo(enemy);
-			}
-			else
-			{
-				turnTo(enemy);
-				turnAround();
-				move();
-			}
-		}
-	}
+    public void action()
+    {
+        attack(getWeaponOne());
+        attack(getWeaponTwo());
+        movement();
+    }
+
+    public void attack(Weapon w)
+    {
+        if (currentTarget == null || currentTarget.isDead()) {
+            Unit enemy = getBestTargetEnemy(getMaxRange());
+            if (combatManager != null) {
+                if (combatManager.getStrategy() instanceof RallyStrategy) {
+                    enemy = getBestTargetEnemy(getMaxRange());
+                }
+                if (combatManager.getStrategy() instanceof CoordinateTargetedEnemyStrategy) {
+                    enemy = ((CoordinateTargetedEnemyStrategy) combatManager.getStrategy()).getTarget();
+                }
+            }
+            currentTarget = enemy;
+        }
+
+
+        if(currentTarget != null && w != null && getDistance(currentTarget) < getMaxRange())
+        {
+            w.use(currentTarget);
+        }
+    }
+
+    public void movement()
+    {
+
+        if (combatManager != null) {
+            if (combatManager.getStrategy() instanceof RallyStrategy) {
+                moveTo(((RallyStrategy) combatManager.getStrategy()).getRallyX(),((RallyStrategy) combatManager.getStrategy()).getRallyPointY());
+            }
+            if (combatManager.getStrategy() instanceof CoordinateTargetedEnemyStrategy) {
+                moveTo(((CoordinateTargetedEnemyStrategy) combatManager.getStrategy()).getTarget());
+            }
+            if (combatManager.getStrategy() instanceof ProtectGathererStrategy) {
+                moveTo(workerToProtect);
+            }
+        }
+
+        if (currentTarget == null || currentTarget.isDead()) {
+            currentTarget = getBestTargetEnemy(getMaxRange()*2);
+        }
+        Unit enemy = currentTarget;
+//
+        if(enemy != null)
+        {
+            if(getDistance(enemy) > getMaxRange())
+            {
+                moveTo(enemy);
+            }
+            else
+            {
+                turnTo(enemy);
+                turnAround();
+                move();
+            }
+        }
+//		else{
+//			moveTo(getNearestEnemy());
+//		}
+
+
+    }
+
+    public int getAverageEnemyMaxSpeed()
+    {
+
+        ArrayList<Unit> enemies = getEnemies();
+
+        float totalSpeed = 0;
+
+        float numEnemies = enemies.size();
+
+        for(Unit e : enemies)
+
+        {
+            if(e instanceof BaseShip)
+            {
+                continue;
+            }
+
+            float curSpeed = e.getMaxSpeed() / Values.SPEED;
+
+            totalSpeed += curSpeed;
+        }
+
+        int averageSpeed = (int) (totalSpeed / numEnemies);
+
+        return averageSpeed;
+    }
+
+    public void setWorkerToProtect(Unit u) {
+        this.workerToProtect = u;
+    }
+
+    public Unit getWorkerToProtect() {return workerToProtect;}
+
+    public void setCombatManager(CombatManager c) {
+        combatManager = c;
+    }
+
+    public Unit getBestTargetEnemy(float radius) {
+        Unit bestEnemy = null;
+        ArrayList<Unit> enemies = getEnemiesInRadius(radius);
+        if (!enemies.isEmpty()) {
+            int bestEnemyScore = 0;
+            for (Unit enemy : enemies) {
+                int totalPoints = 10000;
+                totalPoints -= healthScore(enemy);
+                totalPoints -= damageScore(enemy);
+                totalPoints -= speedScore(enemy);
+                totalPoints -= typeShipScore(enemy);
+                totalPoints -= statusAndRangeScore(enemy);
+                totalPoints -= distance(enemy);
+                if (bestEnemy == null) {
+                    bestEnemyScore = totalPoints;
+                    bestEnemy = enemy;
+                }
+                else {
+                    if (bestEnemyScore > totalPoints) {
+                        bestEnemyScore = totalPoints;
+                        bestEnemy = enemy;
+                    }
+                }
+            }
+        }
+        return bestEnemy;
+        //health
+        //weapon/damage
+        //speed
+        //type
+        //range
+
+        //if they have a status, kill first
+    }
+
+    private int distance(Unit u) {
+        if (getDistance(u) < getMaxRange()/3) {
+            return 6000;
+        }
+        else if (getDistance(u) < getMaxRange()*2/3) {
+            return 4000;
+        }
+        else if (getDistance(u) < getMaxRange()) {
+            return 2500;
+        }
+        else {
+            return 1000;
+        }
+    }
+
+    private int statusAndRangeScore(Unit u) {
+        if (u.hasComponent(CommandRelay.class)) {
+            return 4000;
+        }
+        else if (u.hasComponent(Pullbeam.class)) {
+            return 3800;
+        }
+        else if (u.hasComponent(SpeedBoost.class)) {
+            return 3500;
+        }
+        else if (u.hasComponent(ElectromagneticPulse.class)) {
+            return 3000;
+        }
+        else if (u.hasComponent(GravitationalRift.class)) {
+            return 2500;
+        }
+        else if (u.hasComponent(HeavyRepairBeam.class)) {
+            return 2400;
+        }
+        else if (u.hasComponent(Collector.class)) {
+            return -10000;
+        }
+        else if (u.getWeaponOne() instanceof RepairBeam && u.getWeaponTwo() instanceof RepairBeam) {
+            return 2300;
+        }
+        else if (u.getWeaponOne() instanceof RepairBeam || u.getWeaponTwo() instanceof RepairBeam) {
+            return 1000;
+        }
+        return 0;
+    }
+
+    private int typeShipScore(Unit u) {
+        if (u.getModel().equals(Model.STRIKER)) {
+            return 2500;
+        }
+        else if (u.getModel().equals(Model.ARTILLERY)) {
+            return 1900;
+        }
+        else if (u.getModel().equals(Model.BASTION)) {
+            return 1700;
+        }
+        else if (u.getModel().equals(Model.DESTROYER)) {
+            return 1500;
+        }
+        else if (u.getModel().equals(Model.TRANSPORT)) {
+            return 1100;
+        }
+        return 1000;
+    }
+
+    private int speedScore(Unit u) {
+        if (u.getFrame().getMass()  <= 12) {
+            return 3000;
+        }
+        else if (u.getFrame().getMass() <= 25) {
+            return 2700;
+        }
+        else if (u.getFrame().getMass() <= 35) {
+            return 2200;
+        }
+        else if (u.getFrame().getMass() <= 45) {
+            return 1900;
+        }
+        return 1500;
+    }
+
+    private int damageScore(Unit u) {
+        if (u.getWeaponOne() instanceof HeavyMissile || u.getWeaponTwo() instanceof HeavyMissile ) {
+            return 2000;
+        }
+        else if (u.getWeaponOne() instanceof Missile && u.getWeaponTwo() instanceof Missile) {
+            return 1900;
+        }
+        else if (u.getWeaponOne() instanceof HeavyLaser || u.getWeaponTwo() instanceof HeavyLaser) {
+            return 1800;
+        }
+        else if (u.getWeaponOne() instanceof Laser && u.getWeaponTwo() instanceof Laser) {
+            return 1700;
+        }
+        else if (u.getWeaponOne() instanceof Missile || u.getWeaponTwo() instanceof Missile) {
+            return 1500;
+        }
+        else if (u.getWeaponOne() instanceof Laser || u.getWeaponTwo() instanceof Laser) {
+            return 1000;
+        }
+        else if (u.getWeaponOne() instanceof HeavyAutocannon || u.getWeaponTwo() instanceof HeavyAutocannon) {
+            return 500;
+        }
+        else if (u.getWeaponOne() instanceof Autocannon && u.getWeaponTwo() instanceof Autocannon) {
+            return 10;
+        }
+        return 5;
+    }
+
+    private int healthScore(Unit u) {
+        //gets a score to deduct based on health of the enemy
+        if (u.getPercentEffectiveHealth() / u.getMaxEffectiveHealth() < 0.2) {
+            return 2500;
+        }
+        else if (u.getPercentEffectiveHealth() / u.getMaxEffectiveHealth() < 0.5) {
+            return 1500;
+        }
+        else if (u.getPercentEffectiveHealth() / u.getMaxEffectiveHealth() < 0.7) {
+            return 1000;
+        }
+        return 200;
+    }
 
     public ArrayList<Resource> getResourcesInRadius(float rad, NeverendingKnightsUnit u){
         ArrayList<Resource> res = new ArrayList<>();
@@ -158,9 +405,16 @@ public abstract class NeverendingKnightsUnit extends Unit
 
         return newNodeChain;
     }
-	
-	public void draw(Graphics g) 
-	{
 
-	}
+    public void draw(Graphics g)
+    {
+        if (workerToProtect != null) {
+            g.setColor(Color.white);
+            g.drawLine(x,y,workerToProtect.getX(),workerToProtect.getY());
+        }
+        else {
+            g.setColor(Color.white);
+            g.drawOval(x,y,getWidth(),h);
+        }
+    }
 }
