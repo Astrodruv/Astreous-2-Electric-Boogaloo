@@ -4,7 +4,7 @@ import objects.entity.unit.BaseShip;
 import objects.resource.Resource;
 import objects.resource.ResourceManager;
 import player.Player;
-import teams.student.NeverendingKnights.units.Gatherer;
+import teams.student.NeverendingKnights.units.resource.Gatherer;
 
 import java.util.ArrayList;
 

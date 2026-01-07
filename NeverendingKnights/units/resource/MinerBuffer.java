@@ -1,4 +1,4 @@
-package teams.student.NeverendingKnights.units;
+package teams.student.NeverendingKnights.units.resource;
 
 import components.mod.utility.AthenaMod;
 import components.weapon.utility.CommandRelay;

@@ -1,16 +1,16 @@
-package teams.student.NeverendingKnights.units.combat;
+package teams.student.NeverendingKnights.units;
 
 import components.mod.utility.AthenaMod;
-import components.upgrade.Plating;
-import components.upgrade.Shield;
 import components.weapon.Weapon;
 import components.weapon.energy.Laser;
 import components.weapon.utility.CommandRelay;
 import objects.entity.unit.Frame;
 import objects.entity.unit.Model;
 import objects.entity.unit.Style;
+import org.newdawn.slick.Graphics;
+import teams.student.NeverendingKnights.NeverendingKnightsUnit;
 
-public class Commander extends Fighter{
+public class Commander extends NeverendingKnightsUnit {
     public void design()
     {
         setFrame(Frame.ASSAULT);
@@ -24,10 +24,8 @@ public class Commander extends Fighter{
 
     }
 
-    @Override
-    public void attack(Weapon w) {
-        if (w != null) {
-            w.use();
-        }
+
+    public void draw(Graphics g) {
+
     }
 }

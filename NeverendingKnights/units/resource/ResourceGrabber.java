@@ -1,10 +1,11 @@
-package teams.student.NeverendingKnights.units;
+package teams.student.NeverendingKnights.units.resource;
 
 import components.weapon.economy.Collector;
 import objects.entity.unit.Frame;
 import objects.entity.unit.Model;
 import objects.entity.unit.Style;
 import objects.resource.Resource;
+import org.newdawn.slick.Graphics;
 import teams.student.NeverendingKnights.NeverendingKnightsUnit;
 
 public class ResourceGrabber extends NeverendingKnightsUnit {
@@ -16,7 +17,6 @@ public class ResourceGrabber extends NeverendingKnightsUnit {
         setStyle(Style.ORB);
         add(Collector.class);
         add(Collector.class);
-//        add(Plating.class);
     }
 
     public void action()
@@ -36,6 +36,10 @@ public class ResourceGrabber extends NeverendingKnightsUnit {
         ((Collector) getWeaponTwo()).use(r2);
 
         deposit();
+    }
+
+    public void draw(Graphics g) {
+
     }
 
 }

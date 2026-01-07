@@ -18,22 +18,14 @@ import objects.entity.unit.Model;
 import objects.entity.unit.Unit;
 import objects.resource.Resource;
 import objects.resource.ResourceManager;
-import org.newdawn.slick.Color;
-import org.newdawn.slick.Graphics;
-import teams.student.NeverendingKnights.units.Gatherer;
-import teams.student.NeverendingKnights.units.combat.CombatManager;
-import teams.student.NeverendingKnights.units.combat.strategies.CoordinateTargetedEnemyStrategy;
-import teams.student.NeverendingKnights.units.combat.strategies.ProtectGathererStrategy;
-import teams.student.NeverendingKnights.units.combat.strategies.RallyStrategy;
+import teams.student.NeverendingKnights.units.resource.Gatherer;
 
 import java.util.ArrayList;
 import java.util.Comparator;
 
 public abstract class NeverendingKnightsUnit extends Unit
 {
-    protected CombatManager combatManager;
     protected Unit currentTarget;
-    protected Unit workerToProtect;
     public NeverendingKnights getPlayer()
     {
         return (NeverendingKnights) super.getPlayer();
@@ -47,104 +39,38 @@ public abstract class NeverendingKnightsUnit extends Unit
         movement();
     }
 
-    public void attack(Weapon w)
-    {
+    public void attack(Weapon w) {
         if (currentTarget == null || currentTarget.isDead()) {
-            Unit enemy = getBestTargetEnemy(getMaxRange());
-            if (combatManager != null) {
-                if (combatManager.getStrategy() instanceof RallyStrategy) {
-                    enemy = getBestTargetEnemy(getMaxRange());
-                }
-                if (combatManager.getStrategy() instanceof CoordinateTargetedEnemyStrategy) {
-                    enemy = ((CoordinateTargetedEnemyStrategy) combatManager.getStrategy()).getTarget();
-                }
-            }
-            currentTarget = enemy;
+            currentTarget = getBestTargetEnemy(getMaxRange());
         }
 
-
-        if(currentTarget != null && w != null && getDistance(currentTarget) < getMaxRange())
-        {
+        if(currentTarget != null && w != null && getDistance(currentTarget) < getMaxRange()){
             w.use(currentTarget);
         }
     }
 
     public void movement()
     {
-
-        if (combatManager != null) {
-            if (combatManager.getStrategy() instanceof RallyStrategy) {
-                moveTo(((RallyStrategy) combatManager.getStrategy()).getRallyX(),((RallyStrategy) combatManager.getStrategy()).getRallyPointY());
-            }
-            if (combatManager.getStrategy() instanceof CoordinateTargetedEnemyStrategy) {
-                moveTo(((CoordinateTargetedEnemyStrategy) combatManager.getStrategy()).getTarget());
-            }
-            if (combatManager.getStrategy() instanceof ProtectGathererStrategy) {
-                moveTo(workerToProtect);
-            }
-        }
-
         if (currentTarget == null || currentTarget.isDead()) {
             currentTarget = getBestTargetEnemy(getMaxRange()*2);
         }
         Unit enemy = currentTarget;
-//
-        if(enemy != null)
-        {
-            if(getDistance(enemy) > getMaxRange())
-            {
+
+        if(enemy != null) {
+            if(getDistance(enemy) > getMaxRange()) {
                 moveTo(enemy);
             }
-            else
-            {
+            else {
                 turnTo(enemy);
                 turnAround();
                 move();
             }
         }
-//		else{
-//			moveTo(getNearestEnemy());
-//		}
-
-
     }
 
-    public int getAverageEnemyMaxSpeed()
-    {
-
-        ArrayList<Unit> enemies = getEnemies();
-
-        float totalSpeed = 0;
-
-        float numEnemies = enemies.size();
-
-        for(Unit e : enemies)
-
-        {
-            if(e instanceof BaseShip)
-            {
-                continue;
-            }
-
-            float curSpeed = e.getMaxSpeed() / Values.SPEED;
-
-            totalSpeed += curSpeed;
-        }
-
-        int averageSpeed = (int) (totalSpeed / numEnemies);
-
-        return averageSpeed;
-    }
-
-    public void setWorkerToProtect(Unit u) {
-        this.workerToProtect = u;
-    }
-
-    public Unit getWorkerToProtect() {return workerToProtect;}
-
-    public void setCombatManager(CombatManager c) {
-        combatManager = c;
-    }
+    //**********************************************************************************
+    // ENEMY TARGETING *****************************************************************
+    //**********************************************************************************
 
     public Unit getBestTargetEnemy(float radius) {
         Unit bestEnemy = null;
@@ -158,7 +84,7 @@ public abstract class NeverendingKnightsUnit extends Unit
                 totalPoints -= speedScore(enemy);
                 totalPoints -= typeShipScore(enemy);
                 totalPoints -= statusAndRangeScore(enemy);
-                totalPoints -= distance(enemy);
+                totalPoints -= distanceScore(enemy);
                 if (bestEnemy == null) {
                     bestEnemyScore = totalPoints;
                     bestEnemy = enemy;
@@ -171,6 +97,7 @@ public abstract class NeverendingKnightsUnit extends Unit
                 }
             }
         }
+        if (bestEnemy != null && (bestEnemy.hasComponent(Collector.class) || bestEnemy.hasComponent(Drillbeam.class))) return null; // Can change to only gatherers if need be
         return bestEnemy;
         //health
         //weapon/damage
@@ -181,7 +108,7 @@ public abstract class NeverendingKnightsUnit extends Unit
         //if they have a status, kill first
     }
 
-    private int distance(Unit u) {
+    private int distanceScore(Unit u) {
         if (getDistance(u) < getMaxRange()/3) {
             return 6000;
         }
@@ -304,6 +231,10 @@ public abstract class NeverendingKnightsUnit extends Unit
         return 200;
     }
 
+    //**********************************************************************************
+    // RESOURCES ***********************************************************************
+    //**********************************************************************************
+
     public ArrayList<Resource> getResourcesInRadius(float rad, NeverendingKnightsUnit u){
         ArrayList<Resource> res = new ArrayList<>();
         for (Resource r : ResourceManager.getResources()){
@@ -374,6 +305,37 @@ public abstract class NeverendingKnightsUnit extends Unit
         return null;
     }
 
+    public ArrayList<Node> updateNodeChain(ArrayList<Node> nodeChain){
+        ArrayList<Node> newNodeChain = new ArrayList<>();
+
+        if (nodeChain != null) {
+            for (Node n : nodeChain) {
+                if (n.isAlive() && n.isInBounds()) newNodeChain.add(n);
+            }
+        }
+
+        return newNodeChain;
+    }
+
+    //**********************************************************************************
+    // MISC ****************************************************************************
+    //**********************************************************************************
+
+    public int getAverageEnemyMaxSpeed()
+    {
+        ArrayList<Unit> enemies = getEnemies();
+        float totalSpeed = 0;
+        float numEnemies = enemies.size();
+
+        for(Unit e : enemies) {
+            if(e instanceof BaseShip) continue;
+            float curSpeed = e.getMaxSpeed() / Values.SPEED;
+            totalSpeed += curSpeed;
+        }
+
+        return (int) (totalSpeed / numEnemies);
+    }
+
     public Unit getLowestSafeEnemyWorker(int range) {
         ArrayList<Unit> e = new ArrayList<>();
 
@@ -394,27 +356,4 @@ public abstract class NeverendingKnightsUnit extends Unit
         else return null;
     }
 
-    public ArrayList<Node> updateNodeChain(ArrayList<Node> nodeChain){
-        ArrayList<Node> newNodeChain = new ArrayList<>();
-
-        if (nodeChain != null) {
-            for (Node n : nodeChain) {
-                if (n.isAlive() && n.isInBounds()) newNodeChain.add(n);
-            }
-        }
-
-        return newNodeChain;
-    }
-
-    public void draw(Graphics g)
-    {
-        if (workerToProtect != null) {
-            g.setColor(Color.white);
-            g.drawLine(x,y,workerToProtect.getX(),workerToProtect.getY());
-        }
-        else {
-            g.setColor(Color.white);
-            g.drawOval(x,y,getWidth(),h);
-        }
-    }
 }
