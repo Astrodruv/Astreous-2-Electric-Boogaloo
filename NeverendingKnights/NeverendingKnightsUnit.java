@@ -18,6 +18,7 @@ import objects.entity.unit.Model;
 import objects.entity.unit.Unit;
 import objects.resource.Resource;
 import objects.resource.ResourceManager;
+import teams.student.NeverendingKnights.units.Tank;
 import teams.student.NeverendingKnights.units.resource.Gatherer;
 
 import java.util.ArrayList;
@@ -66,6 +67,10 @@ public abstract class NeverendingKnightsUnit extends Unit
                 move();
             }
         }
+
+        if (!(this instanceof Tank)) {
+            moveTo(getNearestAlly(Tank.class));
+        }
     }
 
     //**********************************************************************************
@@ -108,7 +113,7 @@ public abstract class NeverendingKnightsUnit extends Unit
         //if they have a status, kill first
     }
 
-    private int distanceScore(Unit u) {
+    protected int distanceScore(Unit u) {
         if (getDistance(u) < getMaxRange()/3) {
             return 6000;
         }
@@ -123,7 +128,7 @@ public abstract class NeverendingKnightsUnit extends Unit
         }
     }
 
-    private int statusAndRangeScore(Unit u) {
+    protected int statusAndRangeScore(Unit u) {
         if (u.hasComponent(CommandRelay.class)) {
             return 4000;
         }
@@ -154,7 +159,7 @@ public abstract class NeverendingKnightsUnit extends Unit
         return 0;
     }
 
-    private int typeShipScore(Unit u) {
+    protected int typeShipScore(Unit u) {
         if (u.getModel().equals(Model.STRIKER)) {
             return 2500;
         }
@@ -173,7 +178,7 @@ public abstract class NeverendingKnightsUnit extends Unit
         return 1000;
     }
 
-    private int speedScore(Unit u) {
+    protected int speedScore(Unit u) {
         if (u.getFrame().getMass()  <= 12) {
             return 3000;
         }
@@ -189,7 +194,7 @@ public abstract class NeverendingKnightsUnit extends Unit
         return 1500;
     }
 
-    private int damageScore(Unit u) {
+    protected int damageScore(Unit u) {
         if (u.getWeaponOne() instanceof HeavyMissile || u.getWeaponTwo() instanceof HeavyMissile ) {
             return 2000;
         }
@@ -217,7 +222,7 @@ public abstract class NeverendingKnightsUnit extends Unit
         return 5;
     }
 
-    private int healthScore(Unit u) {
+    protected int healthScore(Unit u) {
         //gets a score to deduct based on health of the enemy
         if (u.getPercentEffectiveHealth() / u.getMaxEffectiveHealth() < 0.2) {
             return 2500;

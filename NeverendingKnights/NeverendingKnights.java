@@ -1,5 +1,6 @@
 package teams.student.NeverendingKnights;
 
+import objects.entity.unit.Unit;
 import objects.resource.ResourceManager;
 import org.newdawn.slick.Graphics;
 import player.Player;
@@ -9,11 +10,14 @@ import teams.student.NeverendingKnights.units.resource.Miner;
 import teams.student.NeverendingKnights.units.resource.MinerBuffer;
 import teams.student.NeverendingKnights.units.resource.ResourceGrabber;
 
+import java.util.ArrayList;
+
 public class NeverendingKnights extends Player
 {
 
     public static ResourceAssigner resourceAssigner;
     public static String gameStage;
+    public static Tank furthestTank;
 
     public void setup()
     {
@@ -41,10 +45,14 @@ public class NeverendingKnights extends Player
             endgameStrategy();
         }
 
-        if (getMyBase().getDistance(getEnemyBase()) < 700){
+        if (getMyBase().getDistance(getEnemyBase()) < 10000){
             gameStage = "Endgame";
         }
+        determineFarthestTank();
+    }
 
+    public void determineFarthestTank() {
+        furthestTank = getFarthestTank();
     }
 
     public void startStrategy(){
@@ -54,10 +62,10 @@ public class NeverendingKnights extends Player
         if (countUnit(this, ResourceGrabber.class) < 2){
             buildUnit(ResourceGrabber.class);
         }
-        if (countUnit(this, Miner.class) < 8){
+        if (countUnit(this, Miner.class) < 10){
             buildUnit(Miner.class);
         }
-        if(countUnit(this, Gatherer.class) < 12) {
+        if(countUnit(this, Gatherer.class) < 15) {
             buildUnit(Gatherer.class);
         }
         if (countUnit(this, Pest.class) < 8){
@@ -66,10 +74,10 @@ public class NeverendingKnights extends Player
 //        if (countUnit(this, Commander.class) < 1) {
 //            buildUnit(Commander.class);
 //        }
-//        if (countUnit(this,Sniper.class) < 10) {
-//            buildUnit(Sniper.class);
-//        }
-        if (countUnit(this, Tank.class) <= 4) {
+        if (countUnit(this,Sniper.class) < 8) {
+            buildUnit(Sniper.class);
+        }
+        if (countUnit(this, Tank.class) <= 8) {
             buildUnit(Tank.class);
         }
 //        if (countUnit(this, MissileLauncher.class) < 4) {
@@ -87,21 +95,49 @@ public class NeverendingKnights extends Player
             if(countUnit(this, Gatherer.class) < 1){
                 buildUnit(Gatherer.class);
             }
-            if (countUnit(this, Pest.class) < 1){
-                buildUnit(Pest.class);
-            }
+//            if (countUnit(this, Pest.class) < 1){
+//                buildUnit(Pest.class);
+//            }
             if (countUnit(this, Commander.class) < 3) {
                 buildUnit(Commander.class);
             }
-            if (countUnit(this,Sniper.class) < 17) {
+            if (countUnit(this,Sniper.class) < 40) {
                 buildUnit(Sniper.class);
             }
-            if (countUnit(this, Tank.class) < 15) {
+            if (countUnit(this, Tank.class) < 40) {
                 buildUnit(Tank.class);
             }
             if (countUnit(this, MissileLauncher.class) < 10) {
                 buildUnit(MissileLauncher.class);
             }
+    }
+
+    private Tank getFarthestTank() {
+        ArrayList<Unit> units = new ArrayList<>(getAllUnits());
+        for (int i = 0; i<units.size(); i++) {
+            if (!(units.get(i) instanceof Tank)) {
+                units.remove(i);
+                i--;
+            }
+        }
+        Tank furthestTank = null;
+        float closestDistanceToEnemyBase = 0;
+        for (Unit t: units) {
+            if (t instanceof Tank) {
+                float distanceToEnemyBase = t.getDistance(getEnemyBase());
+                if (furthestTank == null) {
+                    furthestTank = (Tank) t;
+                    closestDistanceToEnemyBase = distanceToEnemyBase;
+                }
+                else {
+                    if (distanceToEnemyBase < closestDistanceToEnemyBase) {
+                        furthestTank = (Tank) t;
+                        closestDistanceToEnemyBase = distanceToEnemyBase;
+                    }
+                }
+            }
+        }
+        return furthestTank;
     }
 
     public void draw(Graphics g)

@@ -1,7 +1,6 @@
 package teams.student.NeverendingKnights.units;
 
 import components.mod.utility.AthenaMod;
-import components.weapon.Weapon;
 import components.weapon.energy.Laser;
 import components.weapon.utility.CommandRelay;
 import objects.entity.unit.Frame;
@@ -17,10 +16,12 @@ public class Commander extends NeverendingKnightsUnit {
         setModel(Model.ARTILLERY);
         setStyle(Style.BUBBLE);
 
-        add(AthenaMod.class);
+
 //        add(Laser.class);
-        add(CommandRelay.class);
         add(Laser.class);
+        add(CommandRelay.class);
+        add(AthenaMod.class);
+
 
     }
 
