@@ -361,6 +361,28 @@ public abstract class NeverendingKnightsUnit extends Unit
         else return null;
     }
 
+    public Unit getLowestAttackingEnemy(int range) {
+        ArrayList<Unit> e = new ArrayList<>();
+
+        for (Unit u : getEnemiesInRadiusWithComponent(range,Missile.class)){
+            if (u.getDistance(getEnemyBase()) > 500) e.add(u);
+        }
+        for (Unit u : getEnemiesInRadiusWithComponent(range,Laser.class)){
+            if (u.getDistance(getEnemyBase()) > 500) e.add(u);
+        }
+        for (Unit u : getEnemiesInRadiusWithComponent(range,Autocannon.class)){
+            if (u.getDistance(getEnemyBase()) > 500) e.add(u);
+        }
+
+        e.sort(Comparator.comparingDouble(Unit::getPercentEffectiveHealth));
+
+        if (!e.isEmpty()) {
+            return e.getFirst();
+        }
+
+        else return null;
+    }
+
     public boolean opponentHasPullers() {
         ArrayList<Unit> pullers = getEnemies();
         int total = 0;

@@ -14,6 +14,7 @@ public class Pest extends NeverendingKnightsUnit
 {
     private String stage;
     private Unit unitToAttack;
+    public int rand;
 
 	public void design()
 	{	
@@ -26,21 +27,47 @@ public class Pest extends NeverendingKnightsUnit
 
         stage = "Waiting";
         unitToAttack = null;
+        rand = (int) (Math.random() * 2);
 	}
 
     public void action() {
-        unitToAttack = getLowestSafeEnemyWorker(getWeaponOne().getMaxRange() * 5);
+        unitToAttack = getLowestSafeEnemyWorker(getWeaponOne().getMaxRange() * 4);
 
+        if(getHomeBase().getDistance(getEnemyBase()) < 800)
+        {
+            moveTo(getEnemyBase());
+            getWeaponOne().use(getNearestEnemy());
+        }
         if (stage.equals("Waiting")){
-            moveTo(getHomeBase().getCenterX(), 3500);
-            if (getAlliesInRadius(600, Pest.class).size() > 10){
+            if(rand == 0)
+            {
+                moveTo(getHomeBase().getCenterX(), 3500);
+            }
+            else
+            {
+                moveTo(getHomeBase().getCenterX(), -3500);
+            }
+
+            getWeaponOne().use(unitToAttack);
+
+            if (getAlliesInRadius(400, Pest.class).size() > 1 && getAlliesInRadius(400, Creak.class).size() > 1){
                 stage = "Flanking";
             }
         }
         if (stage.equals("Flanking")){
-            moveTo(getEnemyBase().getCenterX(), 3500);
-            if (getDistance(getEnemyBase().getCenterX(), 3500) < 300){
-                stage = "Attacking";
+            getWeaponOne().use(unitToAttack);
+
+            if(rand == 0) {
+                moveTo(getEnemyBase().getCenterX(), 3500);
+                if (getDistance(getEnemyBase().getCenterX(), 3500) < 300){
+                    stage = "Attacking";
+                }
+            }
+            else {
+                moveTo(getEnemyBase().getCenterX(), -3500);
+                if (getDistance(getEnemyBase().getCenterX(), -3500) < 300){
+                    stage = "Attacking";
+                }
             }
         }
         if (stage.equals("Attacking")){
