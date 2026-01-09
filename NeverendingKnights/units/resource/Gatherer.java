@@ -9,6 +9,7 @@ import objects.resource.Resource;
 import org.newdawn.slick.Color;
 import org.newdawn.slick.Graphics;
 import org.newdawn.slick.geom.Point;
+import player.Player;
 import teams.student.NeverendingKnights.NeverendingKnights;
 import teams.student.NeverendingKnights.NeverendingKnightsUnit;
 
@@ -26,7 +27,7 @@ public class Gatherer extends NeverendingKnightsUnit
     public ArrayList<Resource> dumpedResources;
     public static ArrayList<Resource> allDumpedResources;
 
-	public void design()
+    public void design()
 	{
 		setFrame(Frame.LIGHT);
 		setModel(Model.TRANSPORT);
@@ -52,55 +53,61 @@ public class Gatherer extends NeverendingKnightsUnit
         gatherResources();
 
         i++;
-        if (i % 10 == 0) NeverendingKnights.resourceAssigner.updateResources();
+        if (i % 10 == 0) NeverendingKnights.resourceAssigner.updateResources(this);
     }
 
 	public void returnResources()
 	{
-		if(assignedResources.isEmpty()) {
+
+        if (NeverendingKnights.resourceGrabberCount > 0) {
+            if (assignedResources.isEmpty()) {
 
 //            if (time1 == 0) time1 = (float) (((getSpeedX() - getHomeBase().getCurSpeed()) + Math.sqrt(Math.pow(getSpeedX() - getHomeBase().getCurSpeed(), 2) + (2 * getHomeBase().getAcceleration() * (getCenterX() - getHomeBase().getCenterX())))) / getHomeBase().getAcceleration());
 //            if (time2 == 0) time2 = (float) (((getSpeedX() - getHomeBase().getCurSpeed()) - Math.sqrt(Math.pow(getSpeedX() - getHomeBase().getCurSpeed(), 2) + (2 * getHomeBase().getAcceleration() * (getCenterX() - getHomeBase().getCenterX())))) / getHomeBase().getAcceleration());
 //            if (time2 > 0 && time2 < time1) time1 = time2;
 //            if (interceptionPoint == null) interceptionPoint = new Point((float) (getHomeBase().getCenterX() + (getSpeedX() * time1) + (0.5f * getHomeBase().getAcceleration() * Math.pow(time1, 2))), getHomeBase().getCenterY());
 
-            if (timeToGainSpeed < 600 && getDistance(getHomeBase()) > 250){
-                float distance = getDistance(getHomeBase());
-                if (getHomeBase().getSpeedX() != 0){
-                    if (getPlayer().isLeftPlayer()) {
-                        moveTo(getHomeBase().getCenterX() + (distance / 25), getHomeBase().getCenterY());
+//                if (getDistance(getNearestRealEnemy()) > getNearestRealEnemy().getMaxRange()){
+                    if (timeToGainSpeed < 600 && getDistance(getHomeBase()) > 250) {
+                        float distance = getDistance(getHomeBase());
+                        if (getHomeBase().getSpeedX() != 0) {
+                            if (getPlayer().isLeftPlayer()) {
+                                moveTo(getHomeBase().getCenterX() + (distance / 25), getHomeBase().getCenterY());
+                            }
+                            if (getPlayer().isRightPlayer()) {
+                                moveTo(getHomeBase().getCenterX() - (distance / 25), getHomeBase().getCenterY());
+                            }
+                        } else {
+                            moveTo(getHomeBase());
+                        }
+                        timeToGainSpeed++;
+                    } else {
+                        timeToGainSpeed = 0;
+                        dump();
+                        for (Resource r : getResourcesInRadius(50, this)) {
+                            if (!allDumpedResources.contains(r)) allDumpedResources.add(r);
+                        }
                     }
-                    if (getPlayer().isRightPlayer()){
-                        moveTo(getHomeBase().getCenterX() - (distance / 25), getHomeBase().getCenterY());
-                    }
-                }
-                else{
-                    moveTo(getHomeBase());
-                }
-                timeToGainSpeed++;
-            }
-            else {
-                timeToGainSpeed = 0;
-                dump();
-                for (Resource r : getResourcesInRadius(50, this)) {
-                    if (!allDumpedResources.contains(r)) allDumpedResources.add(r);
-                }
-            }
-
-//
-//
-//            if (getAngleToward(interceptionPoint.getX(), interceptionPoint.getY()) != 0) moveTo(interceptionPoint);
-//            else {
-//                dump();
-//                for (Resource r : getResourcesInRadius(50, this)) {
-//                    if (!allDumpedResources.contains(r)) allDumpedResources.add(r);
 //                }
-//            }
+//                else{
+//                    if (isInBounds()) {
+//                        turnTo(getNearestRealEnemy());
+//                        turnAround();
+//                        move();
+//                    } else {
+//                        moveTo(getHomeBase());
+//                    }
+//                }
+
+            } else {
+                interceptionPoint = null;
+                time1 = 0;
+                time2 = 0;
+            }
         }
         else{
-            interceptionPoint = null;
-            time1 = 0;
-            time2 = 0;
+            moveTo(getHomeBase());
+            deposit();
         }
 	}
 

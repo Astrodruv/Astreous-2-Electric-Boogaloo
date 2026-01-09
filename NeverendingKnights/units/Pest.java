@@ -16,19 +16,19 @@ public class Pest extends NeverendingKnightsUnit
     private Unit unitToAttack;
     public int rand;
 
-	public void design()
-	{	
-		setFrame(Frame.LIGHT);
-		setModel(Model.DESTROYER);
-		setStyle(Style.DAGGER);
+    public void design()
+    {
+        setFrame(Frame.LIGHT);
+        setModel(Model.DESTROYER);
+        setStyle(Style.DAGGER);
 
-		add(Laser.class);
-		add(Shield.class);
+        add(Laser.class);
+        add(Shield.class);
 
         stage = "Waiting";
         unitToAttack = null;
         rand = (int) (Math.random() * 2);
-	}
+    }
 
     public void action() {
         unitToAttack = getLowestSafeEnemyWorker(getWeaponOne().getMaxRange() * 4);
@@ -50,7 +50,7 @@ public class Pest extends NeverendingKnightsUnit
 
             getWeaponOne().use(unitToAttack);
 
-            if (getAlliesInRadius(400, Pest.class).size() > 1 && getAlliesInRadius(400, Creak.class).size() > 1){
+            if (getAlliesInRadius(400, Pest.class).size() >= 3){ //getAlliesInRadius(400, Creak.class).size() > 1
                 stage = "Flanking";
             }
         }

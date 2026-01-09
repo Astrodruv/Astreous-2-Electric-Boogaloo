@@ -14,11 +14,11 @@ import engine.Values;
 import objects.entity.node.Node;
 import objects.entity.node.NodeManager;
 import objects.entity.unit.BaseShip;
+import objects.entity.unit.Frame;
 import objects.entity.unit.Model;
 import objects.entity.unit.Unit;
 import objects.resource.Resource;
 import objects.resource.ResourceManager;
-import teams.student.NeverendingKnights.units.Tank;
 import teams.student.NeverendingKnights.units.resource.Gatherer;
 
 import java.util.ArrayList;
@@ -27,11 +27,17 @@ import java.util.Comparator;
 public abstract class NeverendingKnightsUnit extends Unit
 {
     protected Unit currentTarget;
-    public NeverendingKnights getPlayer()
-    {
+    protected final float TOP_Y = 2500;
+    protected final float BOTTOM_Y = -2500;
+    protected float maxX;
+    protected boolean stayInMiddle;
+    protected boolean notConfinedToMiddle;
+    protected boolean stayOutsideMiddle;
+
+
+    public NeverendingKnights getPlayer() {
         return (NeverendingKnights) super.getPlayer();
     }
-
 
     public void action()
     {
@@ -67,10 +73,10 @@ public abstract class NeverendingKnightsUnit extends Unit
                 move();
             }
         }
+    }
 
-        if (!(this instanceof Tank)) {
-            moveTo(getNearestAlly(Tank.class));
-        }
+    public void setMaxX(){
+        if (NeverendingKnights.furthestTank != null) maxX = NeverendingKnights.furthestTank.getCenterX();
     }
 
     //**********************************************************************************
@@ -83,21 +89,22 @@ public abstract class NeverendingKnightsUnit extends Unit
         if (!enemies.isEmpty()) {
             int bestEnemyScore = 0;
             for (Unit enemy : enemies) {
-                int totalPoints = 10000;
-                totalPoints -= healthScore(enemy);
-                totalPoints -= damageScore(enemy);
-                totalPoints -= speedScore(enemy);
-                totalPoints -= typeShipScore(enemy);
-                totalPoints -= statusAndRangeScore(enemy);
-                totalPoints -= distanceScore(enemy);
-                if (bestEnemy == null) {
-                    bestEnemyScore = totalPoints;
-                    bestEnemy = enemy;
-                }
-                else {
-                    if (bestEnemyScore > totalPoints) {
+                if (enemy.getY() > BOTTOM_Y && enemy.getY() < TOP_Y && !enemy.equals(getEnemyBase())) {
+                    int totalPoints = 10000;
+                    totalPoints -= healthScore(enemy);
+                    totalPoints -= damageScore(enemy);
+                    totalPoints -= speedScore(enemy);
+                    totalPoints -= typeShipScore(enemy);
+                    totalPoints -= statusAndRangeScore(enemy);
+                    totalPoints -= distanceScore(enemy);
+                    if (bestEnemy == null) {
                         bestEnemyScore = totalPoints;
                         bestEnemy = enemy;
+                    } else {
+                        if (bestEnemyScore > totalPoints) {
+                            bestEnemyScore = totalPoints;
+                            bestEnemy = enemy;
+                        }
                     }
                 }
             }
@@ -133,21 +140,21 @@ public abstract class NeverendingKnightsUnit extends Unit
             return 4000;
         }
         else if (u.hasComponent(Pullbeam.class)) {
-            return 3800;
+            return 150;
         }
         else if (u.hasComponent(SpeedBoost.class)) {
-            return 3500;
+            return 150;
         }
         else if (u.hasComponent(ElectromagneticPulse.class)) {
-            return 3000;
+            return 450;
         }
         else if (u.hasComponent(GravitationalRift.class)) {
-            return 2500;
+            return 500;
         }
         else if (u.hasComponent(HeavyRepairBeam.class)) {
-            return 2400;
+            return 550;
         }
-        else if (u.hasComponent(Collector.class)) {
+         if (u.hasComponent(Collector.class)) {
             return -10000;
         }
         else if (u.getWeaponOne() instanceof RepairBeam && u.getWeaponTwo() instanceof RepairBeam) {
@@ -214,10 +221,10 @@ public abstract class NeverendingKnightsUnit extends Unit
             return 1000;
         }
         else if (u.getWeaponOne() instanceof HeavyAutocannon || u.getWeaponTwo() instanceof HeavyAutocannon) {
-            return 500;
+            return 800;
         }
         else if (u.getWeaponOne() instanceof Autocannon && u.getWeaponTwo() instanceof Autocannon) {
-            return 10;
+            return 250;
         }
         return 5;
     }
@@ -235,6 +242,29 @@ public abstract class NeverendingKnightsUnit extends Unit
         }
         return 200;
     }
+
+    public Unit getLowestAttackingEnemy(int range) {
+        ArrayList<Unit> e = new ArrayList<>();
+
+        for (Unit u : getEnemiesInRadiusWithComponent(range,Missile.class)){
+            if (u.getDistance(getEnemyBase()) > 500) e.add(u);
+        }
+        for (Unit u : getEnemiesInRadiusWithComponent(range,Laser.class)){
+            if (u.getDistance(getEnemyBase()) > 500) e.add(u);
+        }
+        for (Unit u : getEnemiesInRadiusWithComponent(range,Autocannon.class)){
+            if (u.getDistance(getEnemyBase()) > 500) e.add(u);
+        }
+
+        e.sort(Comparator.comparingDouble(Unit::getPercentEffectiveHealth));
+
+        if (!e.isEmpty()) {
+            return e.getFirst();
+        }
+
+        else return null;
+    }
+
 
     //**********************************************************************************
     // RESOURCES ***********************************************************************
@@ -257,7 +287,9 @@ public abstract class NeverendingKnightsUnit extends Unit
 
         for (Resource resource : ResourceManager.getResources()){
             if (!NeverendingKnights.resourceAssigner.assignedResources.contains(resource) && !Gatherer.allDumpedResources.contains(resource)){
-                res.add(resource);
+//                if (getNearestRealEnemy().getDistance(r) > getDistance(r)) {
+                    res.add(resource);
+//                }
             }
         }
 
@@ -361,87 +393,85 @@ public abstract class NeverendingKnightsUnit extends Unit
         else return null;
     }
 
-    public Unit getLowestAttackingEnemy(int range) {
-        ArrayList<Unit> e = new ArrayList<>();
-
-        for (Unit u : getEnemiesInRadiusWithComponent(range,Missile.class)){
-            if (u.getDistance(getEnemyBase()) > 500) e.add(u);
+    public boolean hasAntiMissiles() {
+        for (Unit l : getEnemies()) {
+            if (l.hasComponent(AntiMissileSystem.class)) {
+                return true;
+            }
         }
-        for (Unit u : getEnemiesInRadiusWithComponent(range,Laser.class)){
-            if (u.getDistance(getEnemyBase()) > 500) e.add(u);
-        }
-        for (Unit u : getEnemiesInRadiusWithComponent(range,Autocannon.class)){
-            if (u.getDistance(getEnemyBase()) > 500) e.add(u);
-        }
-
-        e.sort(Comparator.comparingDouble(Unit::getPercentEffectiveHealth));
-
-        if (!e.isEmpty()) {
-            return e.getFirst();
-        }
-
-        else return null;
+        return false;
     }
 
-    public boolean opponentHasPullers() {
-        ArrayList<Unit> pullers = getEnemies();
-        int total = 0;
-        for (int i = 0; i<pullers.size(); i++) {
-            if (pullers.get(i).hasComponent(Collector.class) || pullers.get(i).hasComponent(Drillbeam.class)) {
-               pullers.remove(i);
-                i--;
-            }
-            if (pullers.get(i).hasComponent(Pullbeam.class)) {
-                total++;
+    public boolean hasManyMissiles(){
+        int totalMissiles = 0;
+
+        for (Unit l: getEnemies()){
+            if (l.hasComponent(Missile.class) || l.hasComponent(HeavyMissile.class)) {
+                totalMissiles++;
             }
         }
-        return (total > pullers.size() / 4);
-}
 
-    public boolean opponentHasLongRangeWeapons() {
+        if (totalMissiles > 5) return true;
+        return false;
+    }
+
+    public boolean hasManyRushUnits(){
+        int totalRush = 0;
+
+        for (Unit l : getEnemies()){
+            if (l.getFrame() == Frame.LIGHT && !l.hasComponent(Collector.class) && !l.hasComponent(Drillbeam.class)){
+                totalRush++;
+            }
+        }
+
+        if (totalRush >= 5){
+            return true;
+        }
+        return false;
+    }
+
+    public ArrayList<Unit> getRealEnemiesInRadius(int r) {
+        ArrayList<Unit> enemies = getEnemiesInRadius(r);
+        ArrayList<Unit> realEnemies = new ArrayList<>();
+
+        for (Unit u : enemies){
+            if (!u.hasWeapon(Collector.class) && !u.hasWeapon(Drillbeam.class)) {
+                realEnemies.add(u);
+            }
+        }
+
+        return realEnemies;
+    }
+
+    public Unit getNearestRealEnemy() {
+//        if (timer % 10 == 0) {
         ArrayList<Unit> enemies = getEnemies();
-        int total = 0;
-        for (int i = 0; i<enemies.size(); i++) {
-            if (enemies.get(i).hasComponent(Collector.class) || enemies.get(i).hasComponent(Drillbeam.class)) {
-                enemies.remove(i);
-                i--;
-            }
-            if (enemies.get(i).getMaxRange() > averageRangeOfUnits()) {
-                total++;
-            }
-        }
-        return (total > enemies.size() / 4);
-    }
+        ArrayList<Unit> realEnemies = new ArrayList<>();
 
-
-
-    protected float averageRangeOfUnits() {
-        ArrayList<Unit> myUnits = getAllies();
-        float total = 0;
-        for (int i = 0; i< myUnits.size(); i++) {
-            if (!(myUnits.get(i).hasComponent(Collector.class) || myUnits.get(i).hasComponent(Drillbeam.class))) {
-                total += myUnits.get(i).getMaxRange();
-            }
-            else {
-                myUnits.remove(i);
-                i--;
+        for (Unit u : enemies) {
+            if (!u.hasWeapon(Collector.class) && !u.hasWeapon(Drillbeam.class)) {
+                if (u.getDistance(u.getHomeBase()) < 2500 || getDistance(u) < u.getMaxRange() + 1500 || (u.getDistance(getHomeBase()) < 2750 && u.getY() > getHomeBase().getY() - 1500 && u.getY() < getHomeBase().getY() + 1500)) {
+                    realEnemies.add(u);
+                    if (u.hasWeapon(ElectromagneticPulse.class) && u.getDistance(this) < 750) return u;
+                    if (u.getDistance(getHomeBase()) < u.getMaxRange()) return u;
+                }
             }
         }
-        return total / myUnits.size();
-    }
 
-    public int getAverageMyUnitsMaxSpeed()
-    {
-        ArrayList<Unit> myUnits = getUnits(getPlayer());
-        float totalSpeed = 0;
-        float totalUnits = myUnits.size();
+        realEnemies.sort(Comparator.comparingDouble(this::getDistance));
 
-        for(Unit e : myUnits) {
-            if(e instanceof BaseShip) continue;
-            float curSpeed = e.getMaxSpeed() / Values.SPEED;
-            totalSpeed += curSpeed;
+        if (realEnemies.isEmpty()) return null;
+
+        if (getPlayer().isLeftPlayer()) {
+            if (realEnemies.getFirst().getX() > getEnemyBase().getX()) return getEnemyBase();
+        }
+        if (getPlayer().isRightPlayer()) {
+            if (realEnemies.getFirst().getX() < getEnemyBase().getX()) return getEnemyBase();
         }
 
-        return (int) (totalSpeed / totalUnits);
+
+        return realEnemies.getFirst();
+//        }
+//        return null;
     }
 }

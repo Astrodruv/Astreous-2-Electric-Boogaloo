@@ -1,84 +1,232 @@
 package teams.student.NeverendingKnights.units;
 
 import components.mod.offense.CerberusMod;
+import components.mod.offense.NyxMod;
 import components.upgrade.Munitions;
-import components.weapon.economy.Collector;
-import components.weapon.economy.Drillbeam;
+import components.upgrade.Shield;
+import components.weapon.Weapon;
 import components.weapon.explosive.HeavyMissile;
+import components.weapon.explosive.Missile;
 import objects.entity.unit.Frame;
 import objects.entity.unit.Model;
 import objects.entity.unit.Style;
-import objects.entity.unit.Unit;
 import org.newdawn.slick.Graphics;
+import player.Player;
+import teams.student.NeverendingKnights.NeverendingKnights;
 import teams.student.NeverendingKnights.NeverendingKnightsUnit;
 
-import java.util.ArrayList;
-
 public class MissileLauncher extends NeverendingKnightsUnit {
+    private String stage;
+    private float spreadY;
 
     // For best enemy, should prioritize highly clustered swarms rather than typical bestTarget
 
     public void design() {
-        setFrame(Frame.HEAVY);
+        setFrame(Frame.MEDIUM);
         setModel(Model.ARTILLERY);
-        setStyle(Style.WEDGE);
+        setStyle(Style.DAGGER);
 
-        add(HeavyMissile.class);
-        add(Munitions.class);
-        add(CerberusMod.class);
+        if (!hasAntiMissiles()) {
+            add(Missile.class);
+//            add(Munitions.class);
+            add(CerberusMod.class);
+//            add(NyxMod.class);
+            add(Shield.class);
+        }
+
+        stage = "Waiting";
+
+        spreadY = (float) ((Math.random() * 200) - 100);
+    }
+
+
+    public void action() {   // move back if too low so that healers can heal them
+        setMaxX();
+        updateStage();
+        setCurrentTarget();
+        movement();
+        attack(getWeaponOne());
+        attack(getWeaponTwo());
+    }
+
+    public void attack(Weapon w) {
+        if(currentTarget != null && w != null && getDistance(currentTarget) < getMaxRange()){
+            w.use(currentTarget);
+        }
+    }
+
+    public void movement() {
+        if (stage.equals("Waiting")) {
+            if (getPlayer().isLeftPlayer()) moveTo(getHomeBase().getCenterX() + 300, getHomeBase().getCenterY());
+            else if (getPlayer().isRightPlayer()) moveTo(getHomeBase().getCenterX() - 300, getHomeBase().getCenterY());
+        }
+        else if (stage.equals("Attacking")) {
+            if (getDistance(currentTarget) > (getMaxRange())) {
+                if (((getPlayer().isLeftPlayer() && currentTarget.getX() > maxX) || (getPlayer().isRightPlayer() && currentTarget.getX() < maxX)) && getDistance(currentTarget) > 2000) {
+                    if (getPlayer().isLeftPlayer()) moveTo(maxX - getMaxRange(), currentTarget.getCenterY() + spreadY);
+                    else if (getPlayer().isRightPlayer()) moveTo(maxX + getMaxRange(), currentTarget.getCenterY() + spreadY);
+                } else {
+                    moveTo(currentTarget.getX(), currentTarget.getCenterY() + spreadY);
+                }
+            }
+            else {
+                turnTo(currentTarget.getX(), currentTarget.getCenterY());
+                turnAround();
+                move();
+            }
+
+
+
+//            if (currentTarget != null) {
+//                if (getDistance(currentTarget) > (getMaxRange() * 1.15f)) {
+//                    if (((getPlayer().isLeftPlayer() && currentTarget.getX() > maxX) || (getPlayer().isRightPlayer() && currentTarget.getX() < maxX)) && getDistance(currentTarget) > (getMaxRange() * 2.5f)) {
+//                        if (getPlayer().isLeftPlayer()) moveTo(maxX - getMaxRange(), currentTarget.getCenterY() + spreadY);
+//                        else if (getPlayer().isRightPlayer()) moveTo(maxX + getMaxRange(), currentTarget.getCenterY() + spreadY);
+//                    }
+//                    else {
+//                        moveTo(currentTarget.getX(), currentTarget.getCenterY() + spreadY);
+//                    }
+//                    dbgMessage("MOVING");
+//                }
+//                else if (getDistance(currentTarget) > (getMaxRange())){
+//                    if (getCurSpeed() >= (getMaxSpeed() / 4)) {
+//                        turnTo(currentTarget.getX() - getMaxRange(), currentTarget.getCenterY() + spreadY);
+//                        turnAround();
+//                        move();
+//                    }
+//                    else{
+//                        moveTo(currentTarget.getX(), currentTarget.getCenterY() + spreadY);
+//                    }
+//                    dbgMessage("STUTTERING"); // This helps to get the ship to slow down so that they can retreat quickly after firing
+//                }
+//                else if (getDistance(currentTarget) > (getMaxRange() * 0.95f)){
+//                    attack(getWeaponOne());
+//                    attack(getWeaponTwo());
+//                    dbgMessage("ATTACKING");
+//                }
+//                else {
+//                    turnTo(currentTarget.getX(), currentTarget.getCenterY());
+//                    turnAround();
+//                    move();
+//                    dbgMessage("FLEEING");
+//                }
+//            }
+
+
+//        if (stage.equals("Waiting")) {
+//            if (getPlayer().isLeftPlayer()) moveTo(getHomeBase().getCenterX() + 300, getHomeBase().getCenterY());
+//            else if (getPlayer().isRightPlayer()) moveTo(getHomeBase().getCenterX() - 300, getHomeBase().getCenterY());
+//        }
+//        else if (stage.equals("Attacking")) {
+//            float farthestX;
+//            if (!NeverendingKnights.gameStage.equals("Endgame")) {
+//                if (NeverendingKnights.furthestTank != null) {
+//                    farthestX = NeverendingKnights.furthestTank.getCenterX();
+//                }
+//                else {
+//                    farthestX = getEnemyBase().getCenterX();
+//                }
+//                float sniperX = farthestX - (float) getMaxRange() /2;
+//                if (getDistance(getNearestAlly(Sniper.class)) < (float) getMaxRange() / 10) {
+//                    spreadOut();
+//                }
+//                if (Math.abs(sniperX - getCenterX()) < (float) getMaxRange() /2 && Math.abs(spreadY - getCenterY()) < (float) getMaxRange() /2) {
+//                    if (currentTarget != null) {
+//                        if (!currentTarget.isDead()) {
+//                            if (getDistance(currentTarget) > (getMaxRange())) {
+//                                moveTo(currentTarget.getX(), currentTarget.getY());
+//                            } else {
+//                                turnTo(currentTarget);
+//                                turnAround();
+//                                move();
+//                            }
+//                        }
+//                    }
+//                }
+//                else {
+//                    dbgMessage("going to sniperX And spreadY");
+//                    moveTo(sniperX,spreadY);
+//                }
+//            }
+//            else {
+//                if (getNearestAlly(Tank.class) == null) {
+//                    moveTo(getHomeBase());
+//                }
+//                else {
+//                    moveTo(getNearestAlly(Tank.class));
+//                }
+//            }
+//        }
+        }
+
+//        else if (stage.equals("Healing")) {
+//            float farthestX;
+//            if (getFarthestTank() != null) {
+//                farthestX = getFarthestTank().getCenterX();
+//            }
+//            else {
+//                farthestX = getHomeBase().getCenterX();
+//            }
+//
+//            float sniperX = farthestX - (float) getMaxRange() *4;
+//            if (Math.abs(sniperX - getCenterX()) < 50 && Math.abs(spreadY - getCenterY()) < 50) {
+//                if (currentTarget != null) {
+//                    if (getDistance(currentTarget) > (getMaxRange())) {
+//                        moveTo(currentTarget.getX(), currentTarget.getY() + spreadY);
+//                    } else {
+//                        turnTo(currentTarget);
+//                        turnAround();
+//                        move();
+//                    }
+//                }
+//            }
+//            else {
+//                moveTo(sniperX,spreadY);
+//            }
+//        }
+    }
+
+    public void spreadOut(){
+        if (getDistance(getNearestAlly(Sniper.class)) < 50){
+            turnTo(getNearestAlly(Sniper.class));
+            float chance = (float) Math.random();
+            if (chance > 0.5) {
+                turn(90);
+            }
+            else {
+                turn(-90);
+            }
+            moveTo(x,y+50);
+        }
+    }
+
+    private void updateStage() {
+        //whatever tank is closest to enemy base follow them
+
+        if ((NeverendingKnights.furthestTank != null && NeverendingKnights.furthestTank.getStage().equals("Attacking"))) { //  || getEnemiesInRadius(500, Sniper.class).size() > 8
+            stage = "Attacking";
+        }
+//            if (getCurEffectiveHealth() < getMaxEffectiveHealth()*0.4) {
+//                stage = "Healing";
+//            }
+//            else {
+//                stage = "Waiting";
+//            }
 
     }
 
-    public void action() {
-        super.action();
+    public void setCurrentTarget(){
+//        if (currentTarget == null || currentTarget.isDead() || getDistance(currentTarget) > getMaxRange()*3) {
+//            currentTarget = getBestTargetEnemy((float) (getMaxRange()*3));
+//        }
+        currentTarget = getBestTargetEnemy(getMaxRange()*2);
+        if (currentTarget == null) currentTarget = getEnemyBase();
     }
 
     public void draw(Graphics g) {
-
+//        g.setColor(Color.white);
+//        if (currentTarget != null) g.drawLine(getCenterX(),getCenterY(),currentTarget.getCenterX(),currentTarget.getCenterY());
     }
 
-    @Override
-    public Unit getBestTargetEnemy(float radius) {
-        Unit bestEnemy = null;
-        ArrayList<Unit> enemies = getEnemiesInRadius(radius);
-        if (!enemies.isEmpty()) {
-            int bestEnemyScore = 0;
-            for (Unit enemy : enemies) {
-                int totalPoints = 10000;
-                totalPoints -= super.healthScore(enemy);
-                totalPoints -= damageScore(enemy);
-                totalPoints -= speedScore(enemy);
-                totalPoints -= typeShipScore(enemy);
-                totalPoints -= statusAndRangeScore(enemy);
-                totalPoints -= distanceScore(enemy);
-                totalPoints -= centralizedScore(enemy);
-                if (bestEnemy == null) {
-                    bestEnemyScore = totalPoints;
-                    bestEnemy = enemy;
-                }
-                else {
-                    if (bestEnemyScore > totalPoints) {
-                        bestEnemyScore = totalPoints;
-                        bestEnemy = enemy;
-                    }
-                }
-            }
-        }
-        if (bestEnemy != null && (bestEnemy.hasComponent(Collector.class) || bestEnemy.hasComponent(Drillbeam.class))) return null; // Can change to only gatherers if need be
-        return bestEnemy;
-    }
-
-    private int centralizedScore(Unit u) {
-        float distance = 300;
-        if (u.getAlliesInRadius(distance).size() > 10) {
-            return 10000;
-        }
-        else if (u.getAlliesInRadius(distance).size() > 5) {
-            return 5000;
-        }
-        else if (u.getAlliesInRadius(distance).size() > 2) {
-            return 1000;
-        }
-        return 100;
-    }
+    public String getStage() {return stage;}    //hook this up to healers
 }

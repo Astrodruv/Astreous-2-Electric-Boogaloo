@@ -8,10 +8,13 @@ import objects.entity.unit.Frame;
 import objects.entity.unit.Model;
 import objects.entity.unit.Style;
 import org.newdawn.slick.Graphics;
+import player.Player;
 import teams.student.NeverendingKnights.NeverendingKnightsUnit;
 
 public class Miner extends NeverendingKnightsUnit
 {
+
+
     // Need to:
     // - Move away from the borders
     // - Move away from dangerous units

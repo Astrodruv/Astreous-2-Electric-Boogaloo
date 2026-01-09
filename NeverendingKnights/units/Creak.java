@@ -52,7 +52,7 @@ public class Creak extends NeverendingKnightsUnit {
             getWeaponOne().use(unitToAttack);
 //            getWeaponTwo().use(unitToAttack);
 
-            if (getAlliesInRadius(400, Pest.class).size() > 1 && getAlliesInRadius(400, Creak.class).size() > 1){
+            if (getAlliesInRadius(400, Creak.class).size() >= 3){
                 stage = "Flanking";
             }
         }

@@ -9,6 +9,7 @@ import objects.entity.unit.Model;
 import objects.entity.unit.Style;
 import org.newdawn.slick.Color;
 import org.newdawn.slick.Graphics;
+import player.Player;
 import teams.student.NeverendingKnights.NeverendingKnightsUnit;
 
 import java.util.ArrayList;
@@ -17,6 +18,7 @@ public class MinerBuffer extends NeverendingKnightsUnit {
 
     public static Node bestNode;
     public static ArrayList<Node> bestNodes;
+
 
     public void design()
     {
