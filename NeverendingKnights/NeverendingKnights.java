@@ -98,8 +98,14 @@ public class NeverendingKnights extends Player
 //            if (countUnit(this, Pest.class) < 1){
 //                buildUnit(Pest.class);
 //            }
+            if (countUnit(this, Healer.class) < 5) {
+                buildUnit(Healer.class);
+            }
             if (countUnit(this, Commander.class) < 3) {
                 buildUnit(Commander.class);
+            }
+            if (countUnit(this, Puller.class) < 6) {
+                buildUnit(Puller.class);
             }
             if (countUnit(this,Sniper.class) < 40) {
                 buildUnit(Sniper.class);

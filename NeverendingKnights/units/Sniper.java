@@ -1,6 +1,5 @@
 package teams.student.NeverendingKnights.units;
 
-import components.mod.offense.PoseidonMod;
 import components.upgrade.Munitions;
 import components.upgrade.Shield;
 import components.weapon.Weapon;
@@ -8,13 +7,9 @@ import components.weapon.energy.HeavyLaser;
 import objects.entity.unit.Frame;
 import objects.entity.unit.Model;
 import objects.entity.unit.Style;
-import objects.entity.unit.Unit;
-import org.newdawn.slick.Color;
 import org.newdawn.slick.Graphics;
 import teams.student.NeverendingKnights.NeverendingKnights;
 import teams.student.NeverendingKnights.NeverendingKnightsUnit;
-
-import java.util.ArrayList;
 
 public class Sniper extends NeverendingKnightsUnit {
     private String stage;
@@ -101,31 +96,10 @@ public class Sniper extends NeverendingKnightsUnit {
                 }
             }
         }
-//        else if (stage.equals("Healing")) {
-//            float farthestX;
-//            if (getFarthestTank() != null) {
-//                farthestX = getFarthestTank().getCenterX();
-//            }
-//            else {
-//                farthestX = getHomeBase().getCenterX();
-//            }
-//
-//            float sniperX = farthestX - (float) getMaxRange() *4;
-//            if (Math.abs(sniperX - getCenterX()) < 50 && Math.abs(spreadY - getCenterY()) < 50) {
-//                if (currentTarget != null) {
-//                    if (getDistance(currentTarget) > (getMaxRange())) {
-//                        moveTo(currentTarget.getX(), currentTarget.getY() + spreadY);
-//                    } else {
-//                        turnTo(currentTarget);
-//                        turnAround();
-//                        move();
-//                    }
-//                }
-//            }
-//            else {
-//                moveTo(sniperX,spreadY);
-//            }
-//        }
+        else if (stage.equals("Healing")) {
+            float midX = (NeverendingKnights.furthestTank.getCenterX() + getHomeBase().getCenterX()) / 2;
+            moveTo(midX,y);
+        }
     }
 
     public void spreadOut(){
@@ -143,14 +117,17 @@ public class Sniper extends NeverendingKnightsUnit {
     }
 
     private void detectStage() {
+        if (stage.equals("Healing") && getCurEffectiveHealth() > getMaxEffectiveHealth()*0.6) {
+            stage = "Waiting";
+        }
         //whatever tank is closest to enemy base follow them
 
         if (NeverendingKnights.furthestTank != null) {
-            if (NeverendingKnights.furthestTank.getStage().equals("Attacking") || stage.equals("Attacking") || getEnemiesInRadius(500, Sniper.class).size() > 8) {
+            if (NeverendingKnights.furthestTank.getStage().equals("Attacking") || getEnemiesInRadius(500, Sniper.class).size() > 8) {
                 stage = "Attacking";
-//                if (getCurEffectiveHealth() < getMaxEffectiveHealth()*0.4) {
-//                    stage = "Healing";
-//                }
+                if (getCurEffectiveHealth() < getMaxEffectiveHealth()*0.4) {
+                    stage = "Healing";
+                }
             }
             else {
                 stage = "Waiting";

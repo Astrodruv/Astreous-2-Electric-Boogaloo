@@ -361,4 +361,65 @@ public abstract class NeverendingKnightsUnit extends Unit
         else return null;
     }
 
+    public boolean opponentHasPullers() {
+        ArrayList<Unit> pullers = getEnemies();
+        int total = 0;
+        for (int i = 0; i<pullers.size(); i++) {
+            if (pullers.get(i).hasComponent(Collector.class) || pullers.get(i).hasComponent(Drillbeam.class)) {
+               pullers.remove(i);
+                i--;
+            }
+            if (pullers.get(i).hasComponent(Pullbeam.class)) {
+                total++;
+            }
+        }
+        return (total > pullers.size() / 4);
+}
+
+    public boolean opponentHasLongRangeWeapons() {
+        ArrayList<Unit> enemies = getEnemies();
+        int total = 0;
+        for (int i = 0; i<enemies.size(); i++) {
+            if (enemies.get(i).hasComponent(Collector.class) || enemies.get(i).hasComponent(Drillbeam.class)) {
+                enemies.remove(i);
+                i--;
+            }
+            if (enemies.get(i).getMaxRange() > averageRangeOfUnits()) {
+                total++;
+            }
+        }
+        return (total > enemies.size() / 4);
+    }
+
+
+
+    protected float averageRangeOfUnits() {
+        ArrayList<Unit> myUnits = getAllies();
+        float total = 0;
+        for (int i = 0; i< myUnits.size(); i++) {
+            if (!(myUnits.get(i).hasComponent(Collector.class) || myUnits.get(i).hasComponent(Drillbeam.class))) {
+                total += myUnits.get(i).getMaxRange();
+            }
+            else {
+                myUnits.remove(i);
+                i--;
+            }
+        }
+        return total / myUnits.size();
+    }
+
+    public int getAverageMyUnitsMaxSpeed()
+    {
+        ArrayList<Unit> myUnits = getUnits(getPlayer());
+        float totalSpeed = 0;
+        float totalUnits = myUnits.size();
+
+        for(Unit e : myUnits) {
+            if(e instanceof BaseShip) continue;
+            float curSpeed = e.getMaxSpeed() / Values.SPEED;
+            totalSpeed += curSpeed;
+        }
+
+        return (int) (totalSpeed / totalUnits);
+    }
 }

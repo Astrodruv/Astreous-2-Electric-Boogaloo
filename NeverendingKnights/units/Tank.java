@@ -5,7 +5,6 @@ import components.mod.offense.CerberusMod;
 import components.mod.offense.HadesMod;
 import components.upgrade.HeavyPlating;
 import components.weapon.Weapon;
-import components.weapon.energy.HeavyLaser;
 import components.weapon.energy.Laser;
 import components.weapon.explosive.HeavyMissile;
 import components.weapon.explosive.Missile;
