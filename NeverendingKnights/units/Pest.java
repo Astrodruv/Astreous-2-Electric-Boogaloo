@@ -8,14 +8,15 @@ import objects.entity.unit.Style;
 import objects.entity.unit.Unit;
 import org.newdawn.slick.Color;
 import org.newdawn.slick.Graphics;
+import player.Player;
 import teams.student.NeverendingKnights.NeverendingKnightsUnit;
 
 public class Pest extends NeverendingKnightsUnit
 {
-    public String stage;
+    private String stage;
     private Unit unitToAttack;
 
-	public void design()
+    public void design()
 	{	
 		setFrame(Frame.LIGHT);
 		setModel(Model.DESTROYER);
@@ -33,7 +34,7 @@ public class Pest extends NeverendingKnightsUnit
 
         if (stage.equals("Waiting")){
             moveTo(getHomeBase().getCenterX(), 3500);
-            if (getAlliesInRadius(600, Pest.class).size() > 10){
+            if (getAlliesInRadius(600, Pest.class).size() > 5){
                 stage = "Flanking";
             }
         }

@@ -1,4 +1,4 @@
-package teams.student.NeverendingKnights.units;
+package teams.student.NeverendingKnights.units.resource;
 
 
 import components.weapon.Weapon;
@@ -7,10 +7,14 @@ import objects.entity.node.Node;
 import objects.entity.unit.Frame;
 import objects.entity.unit.Model;
 import objects.entity.unit.Style;
+import org.newdawn.slick.Graphics;
+import player.Player;
 import teams.student.NeverendingKnights.NeverendingKnightsUnit;
 
 public class Miner extends NeverendingKnightsUnit
 {
+
+
     // Need to:
     // - Move away from the borders
     // - Move away from dangerous units
@@ -23,7 +27,8 @@ public class Miner extends NeverendingKnightsUnit
 		add(Drillbeam.class);
 	}
 
-	public void action() {
+
+    public void action() {
         if (MinerBuffer.bestNode != null) {
             harvest(MinerBuffer.bestNode, getWeaponOne()); // Must mine in clusters
         }
@@ -40,5 +45,9 @@ public class Miner extends NeverendingKnightsUnit
         moveTo(n);
 		w.use(n);
 	}
+
+    public void draw(Graphics g) {
+
+    }
 	
 }
