@@ -40,9 +40,9 @@ public class NeverendingKnights extends Player
         setTeamImage("src/teams/student/NeverendingKnights/teamLogo.png");
         setTitle("Newbie Team");
 
-        setColorPrimary(255, 188, 0);
-        setColorSecondary(255, 255, 255);
-        setColorAccent(0, 0, 128);
+        setColorPrimary(0, 0, 128);
+        setColorSecondary(255, 215, 0);
+        setColorAccent(255, 255, 255);
 
         resourceAssigner = new ResourceAssigner(this);
 
