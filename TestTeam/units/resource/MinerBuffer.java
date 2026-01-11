@@ -1,4 +1,4 @@
-package teams.student.NeverendingKnights.units.resource;
+package teams.student.TestTeam.units.resource;
 
 import components.mod.utility.AthenaMod;
 import components.weapon.utility.CommandRelay;
@@ -9,12 +9,11 @@ import objects.entity.unit.Model;
 import objects.entity.unit.Style;
 import org.newdawn.slick.Color;
 import org.newdawn.slick.Graphics;
-import player.Player;
-import teams.student.NeverendingKnights.NeverendingKnightsUnit;
+import teams.student.TestTeam.TestTeamUnit;
 
 import java.util.ArrayList;
 
-public class MinerBuffer extends NeverendingKnightsUnit {
+public class MinerBuffer extends TestTeamUnit {
 
     public static Node bestNode;
     public static ArrayList<Node> bestNodes;

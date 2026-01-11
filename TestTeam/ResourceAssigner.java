@@ -1,10 +1,10 @@
-package teams.student.NeverendingKnights;
+package teams.student.TestTeam;
 
 import objects.entity.unit.BaseShip;
 import objects.resource.Resource;
 import objects.resource.ResourceManager;
 import player.Player;
-import teams.student.NeverendingKnights.units.resource.Gatherer;
+import teams.student.TestTeam.units.resource.Gatherer;
 
 import java.util.ArrayList;
 
@@ -29,7 +29,7 @@ public class ResourceAssigner {
         resourcesByDistToHomeBase.clear();
         for (Resource r : ResourceManager.getResources()) {
             if (!assignedResources.contains(r) && !Gatherer.allDumpedResources.contains(r) && r.isInBounds()){
-                    resourcesByDistToHomeBase.add(r);
+                resourcesByDistToHomeBase.add(r);
             }
         }
         resourcesByDistToHomeBase.sort((r1, r2) -> Float.compare(r1.getDistance(homeBase), r2.getDistance(homeBase)));

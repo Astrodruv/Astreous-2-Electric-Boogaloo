@@ -1,4 +1,4 @@
-package teams.student.NeverendingKnights.units.resource;
+package teams.student.TestTeam.units.resource;
 
 import components.weapon.economy.Collector;
 import objects.entity.unit.Frame;
@@ -6,10 +6,9 @@ import objects.entity.unit.Model;
 import objects.entity.unit.Style;
 import objects.resource.Resource;
 import org.newdawn.slick.Graphics;
-import player.Player;
-import teams.student.NeverendingKnights.NeverendingKnightsUnit;
+import teams.student.TestTeam.TestTeamUnit;
 
-public class ResourceGrabber extends NeverendingKnightsUnit {
+public class ResourceGrabber extends TestTeamUnit {
 
     public void design()
     {

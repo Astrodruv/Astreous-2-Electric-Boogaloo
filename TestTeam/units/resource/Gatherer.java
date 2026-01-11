@@ -1,4 +1,4 @@
-package teams.student.NeverendingKnights.units.resource;
+package teams.student.TestTeam.units.resource;
 
 
 import components.weapon.economy.Collector;
@@ -9,13 +9,12 @@ import objects.resource.Resource;
 import org.newdawn.slick.Color;
 import org.newdawn.slick.Graphics;
 import org.newdawn.slick.geom.Point;
-import player.Player;
-import teams.student.NeverendingKnights.NeverendingKnights;
-import teams.student.NeverendingKnights.NeverendingKnightsUnit;
+import teams.student.TestTeam.TestTeam;
+import teams.student.TestTeam.TestTeamUnit;
 
 import java.util.ArrayList;
 
-public class Gatherer extends NeverendingKnightsUnit
+public class Gatherer extends TestTeamUnit
 {
     private Point interceptionPoint;
     private float time1;
@@ -48,18 +47,20 @@ public class Gatherer extends NeverendingKnightsUnit
 
 	public void action() 
 	{
+        calculations();
+        setState();
         returnResources();
-        if (assignedResources != null && assignedResources.isEmpty() && isEmpty()) NeverendingKnights.resourceAssigner.assignResources(this);
+        if (assignedResources != null && assignedResources.isEmpty() && isEmpty()) TestTeam.resourceAssigner.assignResources(this);
         gatherResources();
 
         i++;
-        if (i % 10 == 0) NeverendingKnights.resourceAssigner.updateResources(this);
+        if (i % 10 == 0) TestTeam.resourceAssigner.updateResources(this);
     }
 
 	public void returnResources()
 	{
 
-        if (NeverendingKnights.resourceGrabberCount > 0) {
+        if (TestTeam.resourceGrabberCount > 0) {
             if (assignedResources.isEmpty()) {
 
 //            if (time1 == 0) time1 = (float) (((getSpeedX() - getHomeBase().getCurSpeed()) + Math.sqrt(Math.pow(getSpeedX() - getHomeBase().getCurSpeed(), 2) + (2 * getHomeBase().getAcceleration() * (getCenterX() - getHomeBase().getCenterX())))) / getHomeBase().getAcceleration());
@@ -113,8 +114,7 @@ public class Gatherer extends NeverendingKnightsUnit
 
 	public void gatherResources()
 	{
-        if(hasCapacity())
-		{
+        if(hasCapacity()) {
             if (assignedResources != null && !assignedResources.isEmpty()) {
                 Resource r = assignedResources.getFirst();
 
@@ -123,7 +123,7 @@ public class Gatherer extends NeverendingKnightsUnit
                     ((Collector) getWeaponOne()).use(r);
                     if (r.isPickedUp()){
                         assignedResources.remove(r);
-                        NeverendingKnights.resourceAssigner.assignedResources.remove(r);
+                        TestTeam.resourceAssigner.assignedResources.remove(r);
                     }
                 } else moveTo(getHomeBase());
             }
