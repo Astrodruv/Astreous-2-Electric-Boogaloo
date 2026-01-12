@@ -632,36 +632,31 @@ public abstract class TestTeamUnit extends Unit
         return realEnemies;
     }
 
-    public Unit getNearestRealEnemy() {
-//        if (timer % 10 == 0) {
-        ArrayList<Unit> enemies = getEnemies();
-        ArrayList<Unit> realEnemies = new ArrayList<>();
+    public Unit getNearestEnemyThreat() {
+        ArrayList<Unit> enemies = new ArrayList<>(getEnemies());
+        enemies.sort((e1, e2) -> Float.compare(e1.getDistance(this), e2.getDistance(this)));
 
         for (Unit u : enemies) {
-            if (!u.hasWeapon(Collector.class) && !u.hasWeapon(Drillbeam.class)) {
-                if (u.getDistance(u.getHomeBase()) < 2500 || getDistance(u) < u.getMaxRange() + 1500 || (u.getDistance(getHomeBase()) < 2750 && u.getY() > getHomeBase().getY() - 1500 && u.getY() < getHomeBase().getY() + 1500)) {
-                    realEnemies.add(u);
-                    if (u.hasWeapon(ElectromagneticPulse.class) && u.getDistance(this) < 750) return u;
-                    if (u.getDistance(getHomeBase()) < u.getMaxRange()) return u;
-                }
+            if (!u.hasComponent(Collector.class) && !u.hasComponent(Drillbeam.class)){
+                return u;
             }
         }
 
-        realEnemies.sort(Comparator.comparingDouble(this::getDistance));
+        return null;
 
-        if (realEnemies.isEmpty()) return null;
+    }
 
-        if (getPlayer().isLeftPlayer()) {
-            if (realEnemies.getFirst().getX() > getEnemyBase().getX()) return getEnemyBase();
+    public Unit getNearestAllyAttacker(){
+        ArrayList<Unit> allies = new ArrayList<>(getAllies());
+        allies.sort((a1, a2) -> Float.compare(a1.getDistance(this), a2.getDistance(this)));
+
+        for (Unit u : allies) {
+            if (!u.hasComponent(Collector.class) && !u.hasComponent(Drillbeam.class)){
+                return u;
+            }
         }
-        if (getPlayer().isRightPlayer()) {
-            if (realEnemies.getFirst().getX() < getEnemyBase().getX()) return getEnemyBase();
-        }
 
-
-        return realEnemies.getFirst();
-//        }
-//        return null;
+        return null;
     }
 
     public TestTeam getPlayer() {

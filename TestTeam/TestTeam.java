@@ -5,10 +5,7 @@ import objects.entity.unit.Unit;
 import objects.resource.ResourceManager;
 import org.newdawn.slick.Graphics;
 import player.Player;
-import teams.student.TestTeam.units.Creak;
-import teams.student.TestTeam.units.Pest;
-import teams.student.TestTeam.units.Sniper;
-import teams.student.TestTeam.units.Tank;
+import teams.student.TestTeam.units.*;
 import teams.student.TestTeam.units.resource.Gatherer;
 import teams.student.TestTeam.units.resource.Miner;
 import teams.student.TestTeam.units.resource.MinerBuffer;
@@ -81,7 +78,7 @@ public class TestTeam extends Player
                 }
             }
             if (getFleetValueUnitPercentage(Pest.class) < 0.5f) {
-                buildUnit(Pest.class);
+                buildUnit(Destroyer.class);
             }
             if (getFleetValueUnitPercentage(Sniper.class) < 0.2f){
                 buildUnit(Sniper.class);

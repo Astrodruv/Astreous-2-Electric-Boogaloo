@@ -59,16 +59,8 @@ public class Gatherer extends TestTeamUnit
 
 	public void returnResources()
 	{
-
         if (TestTeam.resourceGrabberCount > 0) {
             if (assignedResources.isEmpty()) {
-
-//            if (time1 == 0) time1 = (float) (((getSpeedX() - getHomeBase().getCurSpeed()) + Math.sqrt(Math.pow(getSpeedX() - getHomeBase().getCurSpeed(), 2) + (2 * getHomeBase().getAcceleration() * (getCenterX() - getHomeBase().getCenterX())))) / getHomeBase().getAcceleration());
-//            if (time2 == 0) time2 = (float) (((getSpeedX() - getHomeBase().getCurSpeed()) - Math.sqrt(Math.pow(getSpeedX() - getHomeBase().getCurSpeed(), 2) + (2 * getHomeBase().getAcceleration() * (getCenterX() - getHomeBase().getCenterX())))) / getHomeBase().getAcceleration());
-//            if (time2 > 0 && time2 < time1) time1 = time2;
-//            if (interceptionPoint == null) interceptionPoint = new Point((float) (getHomeBase().getCenterX() + (getSpeedX() * time1) + (0.5f * getHomeBase().getAcceleration() * Math.pow(time1, 2))), getHomeBase().getCenterY());
-
-//                if (getDistance(getNearestRealEnemy()) > getNearestRealEnemy().getMaxRange()){
                     if (timeToGainSpeed < 600 && getDistance(getHomeBase()) > 250) {
                         float distance = getDistance(getHomeBase());
                         if (getHomeBase().getSpeedX() != 0) {
@@ -89,17 +81,6 @@ public class Gatherer extends TestTeamUnit
                             if (!allDumpedResources.contains(r)) allDumpedResources.add(r);
                         }
                     }
-//                }
-//                else{
-//                    if (isInBounds()) {
-//                        turnTo(getNearestRealEnemy());
-//                        turnAround();
-//                        move();
-//                    } else {
-//                        moveTo(getHomeBase());
-//                    }
-//                }
-
             } else {
                 interceptionPoint = null;
                 time1 = 0;
@@ -119,13 +100,26 @@ public class Gatherer extends TestTeamUnit
                 Resource r = assignedResources.getFirst();
 
                 if (r != null && !dumpedResources.contains(r)) {
-                    moveTo(r);
-                    ((Collector) getWeaponOne()).use(r);
-                    if (r.isPickedUp()){
-                        assignedResources.remove(r);
-                        TestTeam.resourceAssigner.assignedResources.remove(r);
+                    if (getDistance(getNearestEnemyThreat()) > getNearestEnemyThreat().getMaxRange() * 2.5f) {
+                        moveTo(r);
+                        ((Collector) getWeaponOne()).use(r);
+                        if (r.isPickedUp()) {
+                            assignedResources.remove(r);
+                            TestTeam.resourceAssigner.assignedResources.remove(r);
+                        }
                     }
-                } else moveTo(getHomeBase());
+                    else{
+                        if (isInBounds()) {
+                            turnTo(getNearestEnemyThreat());
+                            turnAround();
+                            move();
+                        }
+                        else{
+                            moveTo(getHomeBase());
+                        }
+                    }
+                }
+                else moveTo(getHomeBase());
             }
 		}
         else{
