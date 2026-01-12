@@ -48,21 +48,39 @@ public class TestTeam extends Player
             buildUnit(MinerBuffer.class);
         }
 
-        if (timer < 120 * 60) {
+        // Make it not based not time but on the enemy composition
+        if (timer < 180 * 60) {
+            if (getFleetValueUnitPercentage(Miner.class) < 0.4f) {
+                buildUnit(Miner.class);
+            }
+            if (getFleetValueUnitPercentage(Gatherer.class) < 0.45f) {
+                buildUnit(Gatherer.class);
+            }
+        } else if (timer < 300 * 60) {
             if (getFleetValueUnitPercentage(Miner.class) < 0.25f) {
                 buildUnit(Miner.class);
             }
             if (getFleetValueUnitPercentage(Gatherer.class) < 0.35f) {
                 buildUnit(Gatherer.class);
             }
-        } else if (timer < 300 * 60) {
+        }
+        else if (timer < 480 * 60) {
             if (getFleetValueUnitPercentage(Miner.class) < 0.15f) {
                 buildUnit(Miner.class);
             }
-            if (getFleetValueUnitPercentage(Gatherer.class) < 0.2f) {
+            if (getFleetValueUnitPercentage(Gatherer.class) < 0.25f) {
                 buildUnit(Gatherer.class);
             }
-        } else { // if (timer < 500 * 60)
+        }
+        else if (timer < 700 * 60) {
+            if (getFleetValueUnitPercentage(Miner.class) < 0.1f) {
+                buildUnit(Miner.class);
+            }
+            if (getFleetValueUnitPercentage(Gatherer.class) < 0.15f) {
+                buildUnit(Gatherer.class);
+            }
+        }
+        else if (timer < 900 * 60) {
             if (getFleetValueUnitPercentage(Miner.class) < 0.05f) {
                 buildUnit(Miner.class);
             }

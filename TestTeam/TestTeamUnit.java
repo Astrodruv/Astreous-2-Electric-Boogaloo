@@ -18,7 +18,10 @@ import objects.resource.Resource;
 import objects.resource.ResourceManager;
 import org.newdawn.slick.Color;
 import org.newdawn.slick.Graphics;
+import teams.student.TestTeam.units.Pest;
 import teams.student.TestTeam.units.resource.Gatherer;
+import teams.student.TestTeam.units.resource.MinerBuffer;
+import teams.student.TestTeam.units.resource.ResourceGrabber;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -33,12 +36,15 @@ public abstract class TestTeamUnit extends Unit
     public static ArrayList<Unit> enemyMissiles = new ArrayList<>();
     public static ArrayList<Unit> myAttackers = new ArrayList<>();
     public static ArrayList<Unit> myWorkers = new ArrayList<>();
+    public static ArrayList<Unit> myWorkersInDanger = new ArrayList<>();
 
     public static String enemyAttackScheme = ""; // Can focus on healing later
     public static String enemyWorkerStrength = "";
     public static String nearestEnemyThreatDist = "";
     public static float nearestEnemyThreatNumDist = 0;
     public static Unit nearestEnemyThreat = null;
+    public static Unit nearestEnemyWorker = null;
+    public static Unit primaryWorkerInDanger = null;
     public static String enemyMissileThreat = "";
     public static String myMainPushStrength = "";
     public static String myMainPushDensity = "";
@@ -55,13 +61,14 @@ public abstract class TestTeamUnit extends Unit
 
     public static float mainPushRallyX = 0;
     public static float mainPushRallyY = 0;
-
+    public static float pestRallyX = 0;
+    public static float pestRallyY = 0;
 
     protected Unit currentTarget;
 
 
     public void action() {
-        if (Game.getTime() % 5 == 0) { // Reduces lag
+        if (Game.getTime() % 10 == 0) {
             calculations();
             setState();
             setRallyPoint();
@@ -77,6 +84,8 @@ public abstract class TestTeamUnit extends Unit
         calculateNearestEnemyThreat();
         calculateEnemyMissiles();
         calculateMainPushStrength();
+        calculateNearestEnemyWorker();
+        calculateWorkersInDanger();
         calculateMainPushDensity();
     }
 
@@ -120,15 +129,20 @@ public abstract class TestTeamUnit extends Unit
             mainPushRallyX = nearestEnemyThreat.getCenterX();
             mainPushRallyY = nearestEnemyThreat.getCenterY();
         }
+
+        if (nearestEnemyWorker != null) {
+            pestRallyX = nearestEnemyWorker.getCenterX();
+            pestRallyY = nearestEnemyWorker.getCenterY();
+        }
+        else{
+            pestRallyX = getHomeBase().getCenterX();
+            pestRallyY = getHomeBase().getCenterY();
+        }
+
     }
 
     public void act(){
-//        if (attackState.equals("Kill")){
-//            currentTarget =
-//        }
-//        else{
-            currentTarget = nearestEnemyThreat;
-//        }
+        currentTarget = nearestEnemyThreat;
 
         attack(getWeaponOne());
         attack(getWeaponTwo());
@@ -196,6 +210,22 @@ public abstract class TestTeamUnit extends Unit
         }
     }
 
+    public void calculateWorkersInDanger(){
+        myWorkersInDanger.clear();
+        if (myWorkers.contains(this)){
+            if (getNearestEnemyThreat() != null && getDistance(getNearestEnemyThreat()) > getNearestEnemyThreat().getMaxRange() * 1.5f){
+                myWorkersInDanger.add(this);
+            }
+        }
+
+        myWorkersInDanger.sort((w1, w2) -> Float.compare(w2.getDistance(getHomeBase()), w1.getDistance(getHomeBase())));
+
+        if (!myWorkersInDanger.isEmpty()){
+            primaryWorkerInDanger = myWorkersInDanger.getFirst();
+        }
+
+    }
+
     public void calculateEnemyWorkerStrength() {
         enemyWorkers.clear();
 
@@ -254,6 +284,7 @@ public abstract class TestTeamUnit extends Unit
             nearestEnemyThreatNumDist = nearestEnemyThreat.getDistance(getHomeBase());
         }
 
+
         if (nearestEnemyThreatNumDist > 10000){
             nearestEnemyThreatDist = "Very Far";
         }
@@ -274,10 +305,15 @@ public abstract class TestTeamUnit extends Unit
         }
     }
 
+    public void calculateNearestEnemyWorker(){
+        nearestEnemyWorker = getNearestEnemyWorker();
+    }
+
+
     public void calculateMyAttackers(){
         myAttackers.clear();
         for (Unit u : getAlliesExcludeBaseShip()){
-            if (!u.hasComponent(Drillbeam.class) && !u.hasComponent(Collector.class)){
+            if (!u.hasComponent(Drillbeam.class) && !u.hasComponent(Collector.class) && !(u instanceof Pest)){
                 myAttackers.add(u);
             }
         }
@@ -536,7 +572,9 @@ public abstract class TestTeamUnit extends Unit
 
         if (nodeChain != null) {
             for (Node n : nodeChain) {
-                if (n.isAlive() && n.isInBounds()) newNodeChain.add(n);
+                if (n.isAlive() && n.isInBounds()){ // && getDistance(n) < getNearestEnemyThreat().getDistance(n)
+                    newNodeChain.add(n);
+                }
             }
         }
 
@@ -633,11 +671,26 @@ public abstract class TestTeamUnit extends Unit
     }
 
     public Unit getNearestEnemyThreat() {
+        Unit nearest = null;
+        float bestDist = Float.MAX_VALUE;
+        for (Unit u : getEnemies()) {
+            if (u.hasComponent(Collector.class) || u.hasComponent(Drillbeam.class)) continue;
+            float d = getDistance(u);
+            if (d < bestDist) {
+                bestDist = d;
+                nearest = u;
+            }
+        }
+        return nearest;
+    }
+
+
+    public Unit getNearestEnemyWorker() {
         ArrayList<Unit> enemies = new ArrayList<>(getEnemies());
-        enemies.sort((e1, e2) -> Float.compare(e1.getDistance(this), e2.getDistance(this)));
+        enemies.sort((e1, e2) -> Float.compare(e1.getDistance(getHomeBase()), e2.getDistance(getHomeBase())));
 
         for (Unit u : enemies) {
-            if (!u.hasComponent(Collector.class) && !u.hasComponent(Drillbeam.class)){
+            if (u.hasComponent(Collector.class) || u.hasComponent(Drillbeam.class)){
                 return u;
             }
         }

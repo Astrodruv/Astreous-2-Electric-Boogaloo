@@ -21,7 +21,39 @@ public class Pest extends TestTeamUnit
 
         add(Laser.class);
         add(Shield.class);
+    }
 
+    public void act(){
+        currentTarget = nearestEnemyWorker;
+        attack(getWeaponOne());
+        attack(getWeaponTwo());
+        movement();
+    }
+
+    public void movement() {
+        if (currentTarget != null) {
+            if (getNearestEnemyThreat() != null && getDistance(getNearestEnemyThreat()) > getNearestEnemyThreat().getMaxRange() * 1.75f) {
+                moveTo(pestRallyX, pestRallyY);
+            }
+            else{
+                if (isInBounds()) {
+                    turnTo(getNearestEnemyThreat());
+                    turnAround();
+                    move();
+                }
+                else{
+                    moveTo(getHomeBase());
+                }
+            }
+        }
+        else{
+            moveTo(pestRallyX, pestRallyY);
+        }
+    }
+
+    public void draw(Graphics g){
+        g.setColor(Color.white);
+        g.drawLine(getCenterX(), getCenterY(), pestRallyX, pestRallyY);
     }
 
 

@@ -2,9 +2,11 @@ package teams.student.TestTeam.units.resource;
 
 
 import components.weapon.economy.Collector;
+import engine.states.Game;
 import objects.entity.unit.Frame;
 import objects.entity.unit.Model;
 import objects.entity.unit.Style;
+import objects.entity.unit.Unit;
 import objects.resource.Resource;
 import org.newdawn.slick.Color;
 import org.newdawn.slick.Graphics;
@@ -16,9 +18,6 @@ import java.util.ArrayList;
 
 public class Gatherer extends TestTeamUnit
 {
-    private Point interceptionPoint;
-    private float time1;
-    private float time2;
     public ArrayList<Resource> assignedResources;
     private int i;
     private int timeToGainSpeed;
@@ -37,18 +36,19 @@ public class Gatherer extends TestTeamUnit
         dumpedResources = new ArrayList<>();
         if (allDumpedResources == null) allDumpedResources = new ArrayList<>();
 
-        interceptionPoint = null;
-        time1 = 0;
-        time2 = 0;
-
         i = 0;
         timeToGainSpeed = 0;
 	}
 
 	public void action() 
 	{
-        calculations();
-        setState();
+        if (myAttackers.isEmpty()){
+            if (Game.getTime() % 10 == 0) {
+                calculations();
+                setState();
+                setRallyPoint();
+            }
+        }
         returnResources();
         if (assignedResources != null && assignedResources.isEmpty() && isEmpty()) TestTeam.resourceAssigner.assignResources(this);
         gatherResources();
@@ -81,10 +81,6 @@ public class Gatherer extends TestTeamUnit
                             if (!allDumpedResources.contains(r)) allDumpedResources.add(r);
                         }
                     }
-            } else {
-                interceptionPoint = null;
-                time1 = 0;
-                time2 = 0;
             }
         }
         else{
@@ -98,9 +94,9 @@ public class Gatherer extends TestTeamUnit
         if(hasCapacity()) {
             if (assignedResources != null && !assignedResources.isEmpty()) {
                 Resource r = assignedResources.getFirst();
-
+                Unit threat = getNearestEnemyThreat();
                 if (r != null && !dumpedResources.contains(r)) {
-                    if (getDistance(getNearestEnemyThreat()) > getNearestEnemyThreat().getMaxRange() * 2.5f) {
+                    if (threat != null && getDistance(threat) > threat.getMaxRange() * 1.75f) {
                         moveTo(r);
                         ((Collector) getWeaponOne()).use(r);
                         if (r.isPickedUp()) {
@@ -110,7 +106,7 @@ public class Gatherer extends TestTeamUnit
                     }
                     else{
                         if (isInBounds()) {
-                            turnTo(getNearestEnemyThreat());
+                            turnTo(threat);
                             turnAround();
                             move();
                         }

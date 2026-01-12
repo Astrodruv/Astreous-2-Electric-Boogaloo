@@ -40,8 +40,20 @@ public class MinerBuffer extends TestTeamUnit {
         if (bestNodes != null && !bestNodes.isEmpty()) bestNode = bestNodes.getFirst();
         else bestNode = getNearestNode();
 
-        moveTo(bestNode);
-        if (getDistance(bestNode) < 150) getWeaponOne().use();
+        if (getNearestEnemyThreat() != null) {
+            if (getDistance(getNearestEnemyThreat()) > getNearestEnemyThreat().getMaxRange() * 2f) {
+                moveTo(bestNode);
+                if (getDistance(bestNode) < 150) getWeaponOne().use();
+            } else {
+                if (isInBounds()) {
+                    turnTo(getNearestEnemyThreat());
+                    turnAround();
+                    move();
+                } else {
+                    moveTo(getHomeBase());
+                }
+            }
+        }
 
         if (bestNode != null && bestNode.isDead()) bestNodes.remove(bestNode);
 
