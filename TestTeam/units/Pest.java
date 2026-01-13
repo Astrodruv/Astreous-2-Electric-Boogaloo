@@ -32,7 +32,8 @@ public class Pest extends TestTeamUnit
 
     public void movement() {
         if (currentTarget != null) {
-            if (getNearestEnemyThreat() != null && getDistance(getNearestEnemyThreat()) > getNearestEnemyThreat().getMaxRange() * 1.75f) {
+            Unit threat = getNearestEnemyThreat();
+            if (threat != null && getDistance(threat) > threat.getMaxRange() * 3f) {
                 moveTo(pestRallyX, pestRallyY);
             }
             else{

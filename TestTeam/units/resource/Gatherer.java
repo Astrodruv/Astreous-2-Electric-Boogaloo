@@ -67,8 +67,6 @@ public class Gatherer extends TestTeamUnit
                 returnResources();
                 if (assignedResources != null && assignedResources.isEmpty() && isEmpty()) TestTeam.resourceAssigner.assignResources(this);
                 gatherResources();
-
-                if (i % 10 == 0) TestTeam.resourceAssigner.updateResources(this);
             }
         }
     }

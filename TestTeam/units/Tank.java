@@ -27,7 +27,7 @@ public class Tank extends TestTeamUnit {
         setStyle(Style.CRESCENT);
 
         if (enemyMissileThreat.equals("High") || enemyMissileThreat.equals("Medium")){
-            add(Laser.class);
+            add(Autocannon.class);
             add(AntiMissileSystem.class);
         }
         else {

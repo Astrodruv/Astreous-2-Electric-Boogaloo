@@ -204,7 +204,7 @@ public abstract class TestTeamUnit extends Unit
         else if (((float) heavyEnemyThreats / enemyThreats.size()) > 0.5f){
             enemyAttackScheme = "Very Heavy";
         }
-        else if (((float) assaultEnemyThreats / enemyThreats.size()) > 0.5f){
+        else if (((float) assaultEnemyThreats / enemyThreats.size()) > 0.25f){
             enemyAttackScheme = "Very Assault";
         }
         else {

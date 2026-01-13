@@ -20,6 +20,6 @@ public class Destroyer extends TestTeamUnit {
         add(Laser.class);
         add(SpeedBoost.class);
         add(Shield.class);
-
     }
+
 }
