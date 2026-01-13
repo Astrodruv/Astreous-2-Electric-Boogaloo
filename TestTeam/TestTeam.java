@@ -1,6 +1,7 @@
 package teams.student.TestTeam;
 
 import engine.states.Game;
+import objects.entity.node.NodeManager;
 import objects.entity.unit.Unit;
 import objects.resource.ResourceManager;
 import org.newdawn.slick.Graphics;
@@ -20,6 +21,8 @@ public class TestTeam extends Player
     public static String gameStage;
     public static int resourceGrabberCount;
 
+    public static int estimatedMapResources;
+
     public static ArrayList<Unit> tanks;
 
     public void setup()
@@ -35,7 +38,7 @@ public class TestTeam extends Player
         resourceAssigner = new ResourceAssigner(this);
 
         gameStage = "Instant";
-
+        estimatedMapResources = (getAllNodes().size() * 12) + ResourceManager.getResources().size();
     }
 
     public void strategy() {
@@ -48,115 +51,123 @@ public class TestTeam extends Player
             buildUnit(MinerBuffer.class);
         }
 
-        // Make it not based not time but on the enemy composition
-        if (timer < 180 * 60) {
-            if (getFleetValueUnitPercentage(Miner.class) < 0.4f) {
-                buildUnit(Miner.class);
-            }
-            if (getFleetValueUnitPercentage(Gatherer.class) < 0.45f) {
-                buildUnit(Gatherer.class);
-            }
-        } else if (timer < 300 * 60) {
-            if (getFleetValueUnitPercentage(Miner.class) < 0.25f) {
-                buildUnit(Miner.class);
-            }
-            if (getFleetValueUnitPercentage(Gatherer.class) < 0.35f) {
-                buildUnit(Gatherer.class);
-            }
+        if (getFleetValueUnitPercentage(Miner.class) < 0.15f) {
+            buildUnit(Miner.class);
         }
-        else if (timer < 480 * 60) {
-            if (getFleetValueUnitPercentage(Miner.class) < 0.15f) {
-                buildUnit(Miner.class);
-            }
-            if (getFleetValueUnitPercentage(Gatherer.class) < 0.25f) {
-                buildUnit(Gatherer.class);
-            }
-        }
-        else if (timer < 700 * 60) {
-            if (getFleetValueUnitPercentage(Miner.class) < 0.1f) {
-                buildUnit(Miner.class);
-            }
-            if (getFleetValueUnitPercentage(Gatherer.class) < 0.15f) {
-                buildUnit(Gatherer.class);
-            }
-        }
-        else if (timer < 900 * 60) {
-            if (getFleetValueUnitPercentage(Miner.class) < 0.05f) {
-                buildUnit(Miner.class);
-            }
-            if (getFleetValueUnitPercentage(Gatherer.class) < 0.1f) {
-                buildUnit(Gatherer.class);
-            }
-        }
+//        if (getFleetValueUnitPercentage(Gatherer.class) < 0.4f) {
+            buildUnit(Gatherer.class);
+//        }
 
-        if (TestTeamUnit.teamStrategy.equals("Anti-Rush")) {
-            if (TestTeamUnit.enemyMissileThreat.equals("High") || TestTeamUnit.enemyMissileThreat.equals("Medium")){
-                if (getFleetValueUnitPercentage(Tank.class) < 0.15f) {
-                    buildUnit(Tank.class);
-                }
-            }
-            if (getFleetValueUnitPercentage(Pest.class) < 0.5f) {
-                buildUnit(Destroyer.class);
-            }
-            if (getFleetValueUnitPercentage(Sniper.class) < 0.2f){
-                buildUnit(Sniper.class);
-            }
-        } else if (TestTeamUnit.teamStrategy.equals("Buildup")) {
-            if (TestTeamUnit.enemyMissileThreat.equals("High") || TestTeamUnit.enemyMissileThreat.equals("Medium")){
-                if (getFleetValueUnitPercentage(Tank.class) < 0.15f) {
-                    buildUnit(Tank.class);
-                }
-            }
-            if (getFleetValueUnitPercentage(Creak.class) < 0.4f) {
-                buildUnit(Creak.class);
-            }
-        } else if (TestTeamUnit.teamStrategy.equals("Range")) {
-            if (TestTeamUnit.enemyMissileThreat.equals("High") || TestTeamUnit.enemyMissileThreat.equals("Medium")){
-                if (getFleetValueUnitPercentage(Tank.class) < 0.15f) {
-                    buildUnit(Tank.class);
-                }
-            }
-            if (getFleetValueUnitPercentage(Pest.class) < 0.4f) {
-                buildUnit(Sniper.class);
-            }
-        } else if (TestTeamUnit.teamStrategy.equals("Rush")) {
-            if (TestTeamUnit.enemyMissileThreat.equals("High") || TestTeamUnit.enemyMissileThreat.equals("Medium")){
-                if (getFleetValueUnitPercentage(Tank.class) < 0.15f) {
-                    buildUnit(Tank.class);
-                }
-            }
-            if (getFleetValueUnitPercentage(Pest.class) < 0.4f) {
-                buildUnit(Pest.class);
-            }
-        } else if (TestTeamUnit.teamStrategy.equals("DPS Buildup")) {
-            if (TestTeamUnit.enemyMissileThreat.equals("High") || TestTeamUnit.enemyMissileThreat.equals("Medium")){
-                if (getFleetValueUnitPercentage(Tank.class) < 0.15f) {
-                    buildUnit(Tank.class);
-                }
-            }
-            if (getFleetValueUnitPercentage(Tank.class) < 0.4f) {
-                buildUnit(Tank.class);
-            }
-        } else if (TestTeamUnit.teamStrategy.equals("Range Buildup")) {
-            if (TestTeamUnit.enemyMissileThreat.equals("High") || TestTeamUnit.enemyMissileThreat.equals("Medium")){
-                if (getFleetValueUnitPercentage(Tank.class) < 0.15f) {
-                    buildUnit(Tank.class);
-                }
-            }
-            if (getFleetValueUnitPercentage(Pest.class) < 0.4f) {
-                buildUnit(Sniper.class);
-            }
-        } else if (TestTeamUnit.teamStrategy.equals("Undecided")) {
-            if (TestTeamUnit.enemyMissileThreat.equals("High") || TestTeamUnit.enemyMissileThreat.equals("Medium")){
-                if (getFleetValueUnitPercentage(Tank.class) < 0.15f) {
-                    buildUnit(Tank.class);
-                }
-            }
 
-            if (getFleetValueUnitPercentage(Pest.class) < 0.4f) {
-                buildUnit(Sniper.class);
-            }
-        }
+
+//        if (timer < 180 * 60) {
+//            if (getFleetValueUnitPercentage(Miner.class) < 0.4f) {
+//                buildUnit(Miner.class);
+//            }
+//            if (getFleetValueUnitPercentage(Gatherer.class) < 0.45f) {
+//                buildUnit(Gatherer.class);
+//            }
+//        } else if (timer < 300 * 60) {
+//            if (getFleetValueUnitPercentage(Miner.class) < 0.25f) {
+//                buildUnit(Miner.class);
+//            }
+//            if (getFleetValueUnitPercentage(Gatherer.class) < 0.35f) {
+//                buildUnit(Gatherer.class);
+//            }
+//        }
+//        else if (timer < 480 * 60) {
+//            if (getFleetValueUnitPercentage(Miner.class) < 0.15f) {
+//                buildUnit(Miner.class);
+//            }
+//            if (getFleetValueUnitPercentage(Gatherer.class) < 0.25f) {
+//                buildUnit(Gatherer.class);
+//            }
+//        }
+//        else if (timer < 700 * 60) {
+//            if (getFleetValueUnitPercentage(Miner.class) < 0.1f) {
+//                buildUnit(Miner.class);
+//            }
+//            if (getFleetValueUnitPercentage(Gatherer.class) < 0.15f) {
+//                buildUnit(Gatherer.class);
+//            }
+//        }
+//        else if (timer < 900 * 60) {
+//            if (getFleetValueUnitPercentage(Miner.class) < 0.05f) {
+//                buildUnit(Miner.class);
+//            }
+//            if (getFleetValueUnitPercentage(Gatherer.class) < 0.1f) {
+//                buildUnit(Gatherer.class);
+//            }
+//        }
+//
+//        if (TestTeamUnit.teamStrategy.equals("Anti-Rush")) {
+//            if (TestTeamUnit.enemyMissileThreat.equals("High") || TestTeamUnit.enemyMissileThreat.equals("Medium")){
+//                if (getFleetValueUnitPercentage(Tank.class) < 0.15f) {
+//                    buildUnit(Tank.class);
+//                }
+//            }
+//            if (getFleetValueUnitPercentage(Destroyer.class) < 0.5f) {
+//                buildUnit(Destroyer.class);
+//            }
+//            if (getFleetValueUnitPercentage(Sniper.class) < 0.2f){
+//                buildUnit(Sniper.class);
+//            }
+//        } else if (TestTeamUnit.teamStrategy.equals("Buildup")) {
+//            if (TestTeamUnit.enemyMissileThreat.equals("High") || TestTeamUnit.enemyMissileThreat.equals("Medium")){
+//                if (getFleetValueUnitPercentage(Tank.class) < 0.15f) {
+//                    buildUnit(Tank.class);
+//                }
+//            }
+//            if (getFleetValueUnitPercentage(Creak.class) < 0.4f) {
+//                buildUnit(Sniper.class);
+//            }
+//        } else if (TestTeamUnit.teamStrategy.equals("Range")) {
+//            if (TestTeamUnit.enemyMissileThreat.equals("High") || TestTeamUnit.enemyMissileThreat.equals("Medium")){
+//                if (getFleetValueUnitPercentage(Tank.class) < 0.15f) {
+//                    buildUnit(Tank.class);
+//                }
+//            }
+//            if (getFleetValueUnitPercentage(Pest.class) < 0.4f) {
+//                buildUnit(Sniper.class);
+//            }
+//        } else if (TestTeamUnit.teamStrategy.equals("Rush")) {
+//            if (TestTeamUnit.enemyMissileThreat.equals("High") || TestTeamUnit.enemyMissileThreat.equals("Medium")){
+//                if (getFleetValueUnitPercentage(Tank.class) < 0.15f) {
+//                    buildUnit(Tank.class);
+//                }
+//            }
+//            if (getFleetValueUnitPercentage(Pest.class) < 0.4f) {
+//                buildUnit(Pest.class);
+//            }
+//        } else if (TestTeamUnit.teamStrategy.equals("DPS Buildup")) {
+//            if (TestTeamUnit.enemyMissileThreat.equals("High") || TestTeamUnit.enemyMissileThreat.equals("Medium")){
+//                if (getFleetValueUnitPercentage(Tank.class) < 0.15f) {
+//                    buildUnit(Tank.class);
+//                }
+//            }
+//            if (getFleetValueUnitPercentage(Tank.class) < 0.4f) {
+//                buildUnit(Tank.class);
+//            }
+//        } else if (TestTeamUnit.teamStrategy.equals("Range Buildup")) {
+//            if (TestTeamUnit.enemyMissileThreat.equals("High") || TestTeamUnit.enemyMissileThreat.equals("Medium")){
+//                if (getFleetValueUnitPercentage(Tank.class) < 0.15f) {
+//                    buildUnit(Tank.class);
+//                }
+//            }
+//            if (getFleetValueUnitPercentage(Pest.class) < 0.4f) {
+//                buildUnit(Sniper.class);
+//            }
+//        } else if (TestTeamUnit.teamStrategy.equals("Undecided")) {
+//            if (TestTeamUnit.enemyMissileThreat.equals("High") || TestTeamUnit.enemyMissileThreat.equals("Medium")){
+//                if (getFleetValueUnitPercentage(Tank.class) < 0.15f) {
+//                    buildUnit(Tank.class);
+//                }
+//            }
+//
+//            if (getFleetValueUnitPercentage(Pest.class) < 0.4f) {
+//                buildUnit(Sniper.class);
+//            }
+//        }
     }
 
     public void draw(Graphics g)
@@ -188,7 +199,10 @@ public class TestTeam extends Player
         addMessage("Medium Threats: " + TestTeamUnit.mediumEnemyThreats);
         addMessage("Heavy Threats: " + TestTeamUnit.heavyEnemyThreats);
         addMessage("Assault Threats: " + TestTeamUnit.assaultEnemyThreats);
-
+        addMessage(" ");
+        addMessage("Nodes: " + NodeManager.getNodes().size());
+        addMessage("Resources: " + ResourceManager.getResources().size());
+        addMessage("Estimated Resources: " + estimatedMapResources);
 
     }
 

@@ -3,9 +3,13 @@ package teams.student.TestTeam;
 import components.weapon.Weapon;
 import components.weapon.economy.Collector;
 import components.weapon.economy.Drillbeam;
+import components.weapon.energy.HeavyLaser;
+import components.weapon.energy.Laser;
 import components.weapon.explosive.ExplosiveWeapon;
 import components.weapon.explosive.HeavyMissile;
 import components.weapon.explosive.Missile;
+import components.weapon.kinetic.Autocannon;
+import components.weapon.kinetic.HeavyAutocannon;
 import components.weapon.utility.*;
 import engine.Values;
 import engine.states.Game;
@@ -13,6 +17,7 @@ import objects.entity.node.Node;
 import objects.entity.node.NodeManager;
 import objects.entity.unit.BaseShip;
 import objects.entity.unit.Frame;
+import objects.entity.unit.Model;
 import objects.entity.unit.Unit;
 import objects.resource.Resource;
 import objects.resource.ResourceManager;
@@ -20,8 +25,6 @@ import org.newdawn.slick.Color;
 import org.newdawn.slick.Graphics;
 import teams.student.TestTeam.units.Pest;
 import teams.student.TestTeam.units.resource.Gatherer;
-import teams.student.TestTeam.units.resource.MinerBuffer;
-import teams.student.TestTeam.units.resource.ResourceGrabber;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -142,7 +145,8 @@ public abstract class TestTeamUnit extends Unit
     }
 
     public void act(){
-        currentTarget = nearestEnemyThreat;
+//        currentTarget = nearestEnemyThreat;
+        currentTarget = getBiggestThreatInRadius(getMaxRange());
 
         attack(getWeaponOne());
         attack(getWeaponTwo());
@@ -156,18 +160,23 @@ public abstract class TestTeamUnit extends Unit
     }
 
     public void movement() {
-        if (currentTarget != null) {
-            if (getDistance(currentTarget) < getWeaponOne().getMaxRange()) {
-                turnTo(currentTarget);
-                turnAround();
-                move();
-            }
-            else {
+        if (getDistance(getNearestAlly(this.getClass())) > 50) {
+            if (currentTarget != null) {
+                if (getDistance(currentTarget) < getWeaponOne().getMaxRange()) {
+                    turnTo(currentTarget);
+                    turnAround();
+                    move();
+                } else {
+                    moveTo(mainPushRallyX, mainPushRallyY);
+                }
+            } else {
                 moveTo(mainPushRallyX, mainPushRallyY);
             }
         }
         else{
-            moveTo(mainPushRallyX, mainPushRallyY);
+            turnTo(getNearestAlly(this.getClass()));
+            turnAround();
+            move();
         }
     }
 
@@ -484,12 +493,171 @@ public abstract class TestTeamUnit extends Unit
     public void draw(Graphics g) {
         g.setColor(Color.white);
         g.drawLine(getCenterX(), getCenterY(), mainPushRallyX, mainPushRallyY);
+        g.setColor(Color.green);
+        if (currentTarget != null) g.drawLine(getCenterX(), getCenterY(), currentTarget.getCenterX(), currentTarget.getCenterY());
     }
 
     //**********************************************************************************
     // ENEMY TARGETING *****************************************************************
     //**********************************************************************************
 
+    public Unit getBiggestThreatInRadius(float radius) {
+        Unit bestEnemy = null;
+        ArrayList<Unit> enemies = getEnemiesInRadius(radius);
+        if (!enemies.isEmpty()) {
+            int bestEnemyScore = 0;
+            for (Unit enemy : enemies) {
+                    int totalPoints = 10000;
+                    totalPoints -= healthScore(enemy);
+                    totalPoints -= damageScore(enemy);
+                    totalPoints -= speedScore(enemy);
+                    totalPoints -= typeShipScore(enemy);
+                    totalPoints -= statusAndRangeScore(enemy);
+                    totalPoints -= distanceScore(enemy);
+                    if (bestEnemy == null) {
+                        bestEnemyScore = totalPoints;
+                        bestEnemy = enemy;
+                    } else {
+                        if (bestEnemyScore > totalPoints) {
+                            bestEnemyScore = totalPoints;
+                            bestEnemy = enemy;
+                        }
+                    }
+            }
+        }
+        if (bestEnemy != null && (bestEnemy.hasComponent(Collector.class) || bestEnemy.hasComponent(Drillbeam.class))) return null; // Can change to only gatherers if need be
+        return bestEnemy;
+        //health
+        //weapon/damage
+        //speed
+        //type
+        //range
+
+        //if they have a status, kill first
+    }
+
+    protected int distanceScore(Unit u) {
+        if (getDistance(u) < getMaxRange()/3) {
+            return 6000;
+        }
+        else if (getDistance(u) < getMaxRange()*2/3) {
+            return 4000;
+        }
+        else if (getDistance(u) < getMaxRange()) {
+            return 2500;
+        }
+        else {
+            return 1000;
+        }
+    }
+
+    protected int statusAndRangeScore(Unit u) {
+        if (u.hasComponent(CommandRelay.class)) {
+            return 4000;
+        }
+        else if (u.hasComponent(Pullbeam.class)) {
+            return 150;
+        }
+        else if (u.hasComponent(SpeedBoost.class)) {
+            return 150;
+        }
+        else if (u.hasComponent(ElectromagneticPulse.class)) {
+            return 450;
+        }
+        else if (u.hasComponent(GravitationalRift.class)) {
+            return 500;
+        }
+        else if (u.hasComponent(HeavyRepairBeam.class)) {
+            return 550;
+        }
+        if (u.hasComponent(Collector.class)) {
+            return -10000;
+        }
+        else if (u.getWeaponOne() instanceof RepairBeam && u.getWeaponTwo() instanceof RepairBeam) {
+            return 2300;
+        }
+        else if (u.getWeaponOne() instanceof RepairBeam || u.getWeaponTwo() instanceof RepairBeam) {
+            return 1000;
+        }
+        return 0;
+    }
+
+    protected int typeShipScore(Unit u) {
+        if (u.getModel().equals(Model.STRIKER)) {
+            return 2500;
+        }
+        else if (u.getModel().equals(Model.ARTILLERY)) {
+            return 1900;
+        }
+        else if (u.getModel().equals(Model.BASTION)) {
+            return 1700;
+        }
+        else if (u.getModel().equals(Model.DESTROYER)) {
+            return 1500;
+        }
+        else if (u.getModel().equals(Model.TRANSPORT)) {
+            return 1100;
+        }
+        return 1000;
+    }
+
+    protected int speedScore(Unit u) {
+        if (u.getFrame().getMass()  <= 12) {
+            return 3000;
+        }
+        else if (u.getFrame().getMass() <= 25) {
+            return 2700;
+        }
+        else if (u.getFrame().getMass() <= 35) {
+            return 2200;
+        }
+        else if (u.getFrame().getMass() <= 45) {
+            return 1900;
+        }
+        return 1500;
+    }
+
+    protected int damageScore(Unit u) {
+        if (u.getWeaponOne() instanceof HeavyMissile || u.getWeaponTwo() instanceof HeavyMissile ) {
+            return 2000;
+        }
+        else if (u.getWeaponOne() instanceof Missile && u.getWeaponTwo() instanceof Missile) {
+            return 1900;
+        }
+        else if (u.getWeaponOne() instanceof HeavyLaser || u.getWeaponTwo() instanceof HeavyLaser) {
+            return 1800;
+        }
+        else if (u.getWeaponOne() instanceof Laser && u.getWeaponTwo() instanceof Laser) {
+            return 1700;
+        }
+        else if (u.getWeaponOne() instanceof Missile || u.getWeaponTwo() instanceof Missile) {
+            return 1500;
+        }
+        else if (u.getWeaponOne() instanceof Laser || u.getWeaponTwo() instanceof Laser) {
+            return 1000;
+        }
+        else if (u.getWeaponOne() instanceof HeavyAutocannon || u.getWeaponTwo() instanceof HeavyAutocannon) {
+            return 800;
+        }
+        else if (u.getWeaponOne() instanceof Autocannon && u.getWeaponTwo() instanceof Autocannon) {
+            return 250;
+        }
+        return 5;
+    }
+
+    protected int healthScore(Unit u) {
+        //gets a score to deduct based on health of the enemy
+        if (u.getPercentEffectiveHealth() < 0.25) {
+            return 2500;
+        }
+        else if (u.getPercentEffectiveHealth() < 0.5) {
+            return 1500;
+        }
+        else if (u.getPercentEffectiveHealth() < 0.7) {
+            return 1000;
+        }
+        return 200;
+    }
 
     //**********************************************************************************
     // RESOURCES ***********************************************************************
@@ -671,6 +839,9 @@ public abstract class TestTeamUnit extends Unit
     }
 
     public Unit getNearestEnemyThreat() {
+        // found this method that lowkey reduces lag by a ton
+        // basically sets the distance to the highest possible value, and then decreasing it by the lower ones every time
+        // that way we don't need to sort every frame which is pretty laggy
         Unit nearest = null;
         float bestDist = Float.MAX_VALUE;
         for (Unit u : getEnemies()) {

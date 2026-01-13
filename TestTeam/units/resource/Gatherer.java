@@ -49,12 +49,28 @@ public class Gatherer extends TestTeamUnit
                 setRallyPoint();
             }
         }
-        returnResources();
-        if (assignedResources != null && assignedResources.isEmpty() && isEmpty()) TestTeam.resourceAssigner.assignResources(this);
-        gatherResources();
-
         i++;
-        if (i % 10 == 0) TestTeam.resourceAssigner.updateResources(this);
+        if (!TestTeam.resourceAssigner.allResourcesFinished) {
+            returnResources();
+            if (assignedResources != null && assignedResources.isEmpty() && isEmpty()) TestTeam.resourceAssigner.assignResources(this);
+            gatherResources();
+
+            if (i % 10 == 0) TestTeam.resourceAssigner.updateResources(this);
+        }
+        else{
+            if (assignedResources != null && assignedResources.isEmpty() && isEmpty()) {
+                turnTo(getHomeBase());
+                turnAround();
+                move();
+            }
+            else{
+                returnResources();
+                if (assignedResources != null && assignedResources.isEmpty() && isEmpty()) TestTeam.resourceAssigner.assignResources(this);
+                gatherResources();
+
+                if (i % 10 == 0) TestTeam.resourceAssigner.updateResources(this);
+            }
+        }
     }
 
 	public void returnResources()

@@ -7,6 +7,7 @@ import objects.entity.node.Node;
 import objects.entity.unit.Frame;
 import objects.entity.unit.Model;
 import objects.entity.unit.Style;
+import objects.entity.unit.Unit;
 import org.newdawn.slick.Color;
 import org.newdawn.slick.Graphics;
 import teams.student.TestTeam.TestTeamUnit;
@@ -41,12 +42,13 @@ public class MinerBuffer extends TestTeamUnit {
         else bestNode = getNearestNode();
 
         if (getNearestEnemyThreat() != null) {
-            if (getDistance(getNearestEnemyThreat()) > getNearestEnemyThreat().getMaxRange() * 2f) {
+            Unit threat = getNearestEnemyThreat();
+            if (getDistance(threat) > threat.getMaxRange() * 2f) {
                 moveTo(bestNode);
                 if (getDistance(bestNode) < 150) getWeaponOne().use();
             } else {
                 if (isInBounds()) {
-                    turnTo(getNearestEnemyThreat());
+                    turnTo(threat);
                     turnAround();
                     move();
                 } else {
