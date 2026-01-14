@@ -9,8 +9,9 @@ import objects.entity.unit.Unit;
 import org.newdawn.slick.Color;
 import org.newdawn.slick.Graphics;
 import teams.student.NeverendingKnights.NeverendingKnightsUnit;
+import teams.student.TestTeam.TestTeamUnit;
 
-public class Pest extends NeverendingKnightsUnit
+public class Pest extends TestTeamUnit
 {
     private String stage;
     private Unit unitToAttack;

@@ -13,8 +13,9 @@ import objects.entity.unit.Unit;
 import org.newdawn.slick.Color;
 import org.newdawn.slick.Graphics;
 import teams.student.NeverendingKnights.NeverendingKnightsUnit;
+import teams.student.TestTeam.TestTeamUnit;
 
-public class Creak extends NeverendingKnightsUnit {
+public class Creak extends TestTeamUnit {
 
     public String stage;
     private Unit unitToAttack;
