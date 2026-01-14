@@ -89,77 +89,90 @@ public class TestTeam extends Player
             }
         }
 
-        if (TestTeamUnit.teamStrategy.equals("Anti-Rush")) {
-            if (getFleetValueUnitPercentage(Tank.class) < 0.15f) {
-                buildUnit(Tank.class);
-            }
-            if (getFleetValueUnitPercentage(Pest.class) < 0.15f) {
-                buildUnit(Pest.class);
-            }
-            if (getFleetValueUnitPercentage(Sniper.class) < 0.6f){
-                buildUnit(Sniper.class);
-            }
-        } else if (TestTeamUnit.teamStrategy.equals("Buildup")) {
-            if (TestTeamUnit.enemyMissileThreat.equals("High") || TestTeamUnit.enemyMissileThreat.equals("Medium")){
-                if (getFleetValueUnitPercentage(Tank.class) < 0.15f) {
-                    buildUnit(Tank.class);
-                }
-            }
-            if (getFleetValueUnitPercentage(Sniper.class) < 0.4f) {
-                buildUnit(Sniper.class);
-            }
-            if (getFleetValueUnitPercentage(MissileLauncher.class) < 0.15f) {
-                buildUnit(MissileLauncher.class);
-            }
-        } else if (TestTeamUnit.teamStrategy.equals("Range")) {
-            if (TestTeamUnit.enemyMissileThreat.equals("High") || TestTeamUnit.enemyMissileThreat.equals("Medium")){
-                if (getFleetValueUnitPercentage(Tank.class) < 0.15f) {
-                    buildUnit(Tank.class);
-                }
-            }
-            if (getFleetValueUnitPercentage(Sniper.class) < 0.4f) {
-                buildUnit(Sniper.class);
-            }
-            if (getFleetValueUnitPercentage(MissileLauncher.class) < 0.25f) {
-                buildUnit(MissileLauncher.class);
-            }
-        } else if (TestTeamUnit.teamStrategy.equals("Rush")) {
-            if (getFleetValueUnitPercentage(Tank.class) < 0.25f) {
-                buildUnit(Tank.class);
-            }
-            if (getFleetValueUnitPercentage(Sniper.class) < 0.5f) {
-                buildUnit(Sniper.class);
-            }
-
-        } else if (TestTeamUnit.teamStrategy.equals("DPS Buildup")) {
-            if (getFleetValueUnitPercentage(Tank.class) < 0.15f) {
-                buildUnit(Tank.class);
-            }
-            if (getFleetValueUnitPercentage(Sniper.class) < 0.6f) {
-                buildUnit(Sniper.class);
-            }
-            if (getFleetValueUnitPercentage(MissileLauncher.class) < 0.2f) {
-                buildUnit(Sniper.class);
-            }
-        } else if (TestTeamUnit.teamStrategy.equals("Range Buildup")) {
-            if (getFleetValueUnitPercentage(Tank.class) < 0.15f) {
-                buildUnit(Tank.class);
-            }
-            if (getFleetValueUnitPercentage(Sniper.class) < 0.6f) {
-                buildUnit(Sniper.class);
-            }
-            if (getFleetValueUnitPercentage(Sniper.class) < 0.2f) {
-                buildUnit(Sniper.class);
-            }
-        } else if (TestTeamUnit.teamStrategy.equals("Undecided")) {
-            if (getFleetValueUnitPercentage(Tank.class) < 0.15f) {
-                buildUnit(Tank.class);
-            }
-
-            if (getFleetValueUnitPercentage(Sniper.class) < 0.6f) {
-                buildUnit(Sniper.class);
-            }
+        if (getFleetValueUnitPercentage(Tank.class) < 0.2f) {
+            buildUnit(Tank.class);
         }
+        if (getFleetValueUnitPercentage(Sniper.class) < 0.5f){
+            buildUnit(Sniper.class);
+        }
+        if (getFleetValueUnitPercentage(MissileLauncher.class) < 0.15f) {
+            buildUnit(MissileLauncher.class);
+        }
+
+
+//
+//        if (TestTeamUnit.teamStrategy.equals("Anti-Rush")) {
+//            if (getFleetValueUnitPercentage(Tank.class) < 0.15f) {
+//                buildUnit(Tank.class);
+//            }
+//            if (getFleetValueUnitPercentage(Sniper.class) < 0.6f){
+//                buildUnit(Sniper.class);
+//            }
+//            if (getFleetValueUnitPercentage(MissileLauncher.class) < 0.15f) {
+//                buildUnit(MissileLauncher.class);
+//            }
+//
+//        } else if (TestTeamUnit.teamStrategy.equals("Buildup")) {
+//            if (getFleetValueUnitPercentage(Tank.class) < 0.2f) {
+//                buildUnit(Tank.class);
+//            }
+//            if (getFleetValueUnitPercentage(Sniper.class) < 0.45f) {
+//                buildUnit(Sniper.class);
+//            }
+//            if (getFleetValueUnitPercentage(MissileLauncher.class) < 0.15f) {
+//                buildUnit(MissileLauncher.class);
+//            }
+//        } else if (TestTeamUnit.teamStrategy.equals("Range")) {
+//            if (getFleetValueUnitPercentage(Tank.class) < 0.2f) {
+//                buildUnit(Tank.class);
+//            }
+//            if (getFleetValueUnitPercentage(Sniper.class) < 0.4f) {
+//                buildUnit(Sniper.class);
+//            }
+//            if (getFleetValueUnitPercentage(MissileLauncher.class) < 0.25f) {
+//                buildUnit(MissileLauncher.class);
+//            }
+//        } else if (TestTeamUnit.teamStrategy.equals("Rush")) {
+//            if (getFleetValueUnitPercentage(Tank.class) < 0.25f) {
+//                buildUnit(Tank.class);
+//            }
+//            if (getFleetValueUnitPercentage(Sniper.class) < 0.5f) {
+//                buildUnit(Sniper.class);
+//            }
+//
+//        } else if (TestTeamUnit.teamStrategy.equals("DPS Buildup")) {
+//            if (getFleetValueUnitPercentage(Tank.class) < 0.2f) {
+//                buildUnit(Tank.class);
+//            }
+//            if (getFleetValueUnitPercentage(Sniper.class) < 0.5f) {
+//                buildUnit(Sniper.class);
+//            }
+//            if (getFleetValueUnitPercentage(MissileLauncher.class) < 0.2f) {
+//                buildUnit(MissileLauncher.class);
+//            }
+//        } else if (TestTeamUnit.teamStrategy.equals("Range Buildup")) {
+//            if (getFleetValueUnitPercentage(Tank.class) < 0.2f) {
+//                buildUnit(Tank.class);
+//            }
+//            if (getFleetValueUnitPercentage(Sniper.class) < 0.5f) {
+//                buildUnit(Sniper.class);
+//            }
+//            if (getFleetValueUnitPercentage(MissileLauncher.class) < 0.2f) {
+//                buildUnit(MissileLauncher.class);
+//            }
+//        } else if (TestTeamUnit.teamStrategy.equals("Undecided")) {
+//            if (getFleetValueUnitPercentage(Tank.class) < 0.15f) {
+//                buildUnit(Tank.class);
+//            }
+//
+//            if (getFleetValueUnitPercentage(Sniper.class) < 0.5f) {
+//                buildUnit(Sniper.class);
+//            }
+//
+//            if (getFleetValueUnitPercentage(MissileLauncher.class) < 0.2f) {
+//                buildUnit(MissileLauncher.class);
+//            }
+//        }
     }
 
     public void draw(Graphics g)
@@ -178,14 +191,15 @@ public class TestTeam extends Player
         addMessage("Main Push Density: " + TestTeamUnit.myMainPushDensity);
         addMessage("Main Push : " + TestTeamUnit.mainPushState);
         addMessage("Attack State : " + TestTeamUnit.attackState);
+        addMessage("Main Push Avg Dist : " + (TestTeamUnit.mainPushAvgDist > getMyBase().getDistance(getEnemyBase()) / 3));
         addMessage(" ");
         addMessage("Enemy Scheme: " + TestTeamUnit.enemyAttackScheme);
         addMessage("Enemy Workers: " + TestTeamUnit.enemyWorkerStrength);
         addMessage("Nearest Enemy: " + TestTeamUnit.nearestEnemyThreatDist);
         addMessage("Missile Threat: " + TestTeamUnit.enemyMissileThreat);
         addMessage(" ");
-        addMessage("My Attackers: " + TestTeamUnit.myAttackers.size());
-        addMessage("My Threats: " + TestTeamUnit.enemyThreats.size());
+        addMessage("Attacker Value: " + TestTeamUnit.relativeAttackerStrength);
+        addMessage("Threat Value: " + TestTeamUnit.relativeEnemyThreatStrength);
         addMessage(" ");
         addMessage("Light Threats: " + TestTeamUnit.lightEnemyThreats);
         addMessage("Medium Threats: " + TestTeamUnit.mediumEnemyThreats);

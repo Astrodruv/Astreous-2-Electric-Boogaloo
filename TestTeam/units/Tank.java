@@ -1,9 +1,11 @@
 package teams.student.TestTeam.units;
 
 import components.mod.offense.AchillesMod;
+import components.mod.offense.AresMod;
 import components.mod.offense.CerberusMod;
 import components.mod.offense.HadesMod;
 import components.upgrade.HeavyPlating;
+import components.upgrade.Plating;
 import components.weapon.Weapon;
 import components.weapon.energy.Laser;
 import components.weapon.explosive.Missile;
@@ -32,9 +34,11 @@ public class Tank extends TestTeamUnit {
         }
         else {
             add(Autocannon.class);
-            add(AchillesMod.class);
+            add(Autocannon.class);
         }
-        add(HeavyPlating.class);
+
+        add(AresMod.class);
+        add(Plating.class);
     }
 
 }

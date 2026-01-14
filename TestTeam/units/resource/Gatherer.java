@@ -110,7 +110,7 @@ public class Gatherer extends TestTeamUnit
                 Resource r = assignedResources.getFirst();
                 Unit threat = getNearestEnemyThreat();
                 if (r != null && !dumpedResources.contains(r)) {
-                    if (threat != null && getDistance(threat) > threat.getMaxRange() * 1.75f) {
+                    if (threat != null && getDistance(threat) > threat.getMaxRange() * 1.1f) {
                         moveTo(r);
                         ((Collector) getWeaponOne()).use(r);
                         if (r.isPickedUp()) {

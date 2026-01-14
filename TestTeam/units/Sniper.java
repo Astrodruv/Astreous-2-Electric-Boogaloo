@@ -4,6 +4,7 @@ import components.upgrade.Munitions;
 import components.upgrade.Shield;
 import components.weapon.Weapon;
 import components.weapon.energy.HeavyLaser;
+import components.weapon.energy.Laser;
 import objects.entity.unit.Frame;
 import objects.entity.unit.Model;
 import objects.entity.unit.Style;

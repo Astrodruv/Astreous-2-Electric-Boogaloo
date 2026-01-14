@@ -23,7 +23,7 @@ public class MissileLauncher extends TestTeamUnit {
         setStyle(Style.DAGGER);
 
         add(Missile.class);
-        add(CerberusMod.class);
+        add(Missile.class);
         add(Shield.class);
 
     }

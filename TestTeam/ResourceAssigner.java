@@ -31,7 +31,7 @@ public class ResourceAssigner {
         if (homeBase == null) homeBase = player.getMyBase();
         resourcesByDistToHomeBase.clear();
         for (Resource r : ResourceManager.getResources()) {
-            if (!assignedResources.contains(r) && !Gatherer.allDumpedResources.contains(r) && r.isInBounds()){
+            if (!assignedResources.contains(r) && !Gatherer.allDumpedResources.contains(r) && r.isInBounds() && g.isResourceSafe(r)){
                 resourcesByDistToHomeBase.add(r);
             }
         }

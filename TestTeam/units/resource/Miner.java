@@ -32,14 +32,14 @@ public class Miner extends TestTeamUnit
                 setRallyPoint();
             }
         }
-        if (getNearestNode() == null) {
+        if (MinerBuffer.bestNode == null && getNearestNode() == null) {
             moveTo(getEnemyBase());
             getWeaponOne().use(getEnemyBase());
         }
         else {
             if (getNearestEnemyThreat() != null) {
                 Unit threat = getNearestEnemyThreat();
-                if (getDistance(threat) > threat.getMaxRange() * 1.75f || threat.equals(getEnemyBase())) {
+                if (getDistance(threat) > threat.getMaxRange() * 1.25f || threat.equals(getEnemyBase())) {
                     if (MinerBuffer.bestNode != null) {
                         harvest(MinerBuffer.bestNode, getWeaponOne()); // Must mine in clusters
                     } else harvest(getNearestNode(), getWeaponOne());

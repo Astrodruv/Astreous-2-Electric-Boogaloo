@@ -43,7 +43,7 @@ public class MinerBuffer extends TestTeamUnit {
 
         if (getNearestEnemyThreat() != null) {
             Unit threat = getNearestEnemyThreat();
-            if (getDistance(threat) > threat.getMaxRange() * 2f) {
+            if (getDistance(threat) > threat.getMaxRange() * 1.25f) {
                 moveTo(bestNode);
                 if (getDistance(bestNode) < 150) getWeaponOne().use();
             } else {

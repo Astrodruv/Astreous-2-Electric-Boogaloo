@@ -24,6 +24,7 @@ import objects.resource.ResourceManager;
 import org.newdawn.slick.Color;
 import org.newdawn.slick.Graphics;
 import teams.student.TestTeam.units.Pest;
+import teams.student.TestTeam.units.Tank;
 import teams.student.TestTeam.units.resource.Gatherer;
 
 import java.util.ArrayList;
@@ -41,6 +42,8 @@ public abstract class TestTeamUnit extends Unit
     public static ArrayList<Unit> myWorkers = new ArrayList<>();
     public static ArrayList<Unit> myWorkersInDanger = new ArrayList<>();
 
+    public static ArrayList<Unit> tanks = new ArrayList<>();
+
     public static String enemyAttackScheme = ""; // Can focus on healing later
     public static String enemyWorkerStrength = "";
     public static String nearestEnemyThreatDist = "";
@@ -57,15 +60,24 @@ public abstract class TestTeamUnit extends Unit
     public static int heavyEnemyThreats = 0;
     public static int assaultEnemyThreats = 0;
 
+    public static int enemyAntiMissiles = 0;
+
     public static String teamStrategy = "";
     public static String teamAlert = "";
     public static String mainPushState = "";
     public static String attackState = "";
 
-    public static float mainPushRallyX = 0;
-    public static float mainPushRallyY = 0;
+    public float mainPushRallyX = 0;
+    public float mainPushRallyY = 0;
     public static float pestRallyX = 0;
     public static float pestRallyY = 0;
+
+    public static int relativeEnemyThreatStrength = 0;
+    public static int relativeAttackerStrength = 0;
+
+    public static float furthestTankX = 0;
+
+    public static float mainPushAvgDist = 0;
 
     protected Unit currentTarget;
 
@@ -90,6 +102,10 @@ public abstract class TestTeamUnit extends Unit
         calculateNearestEnemyWorker();
         calculateWorkersInDanger();
         calculateMainPushDensity();
+        calculateMainPushAvgDist();
+        calculateRelativePushStrength();
+        calculateFurthestTankX();
+        calculateAntiMissiles();
     }
 
     public void setState(){
@@ -101,14 +117,15 @@ public abstract class TestTeamUnit extends Unit
 
     public void setRallyPoint(){
         if (attackState.equals("Growth")){
-            if (getPlayer().isLeftPlayer()) mainPushRallyX = getHomeBase().getCenterX() + 100;
-            else if (getPlayer().isRightPlayer()) mainPushRallyX = getHomeBase().getCenterX() - 100;
+            if (getPlayer().isLeftPlayer()) mainPushRallyX = getHomeBase().getCenterX() + 600;
+            else if (getPlayer().isRightPlayer()) mainPushRallyX = getHomeBase().getCenterX() - 600;
             mainPushRallyY = getHomeBase().getCenterY();
         }
 
         if (attackState.equals("Defense")){
-            mainPushRallyX = getHomeBase().getNearestEnemy().getCenterX();
-            mainPushRallyY = getHomeBase().getNearestEnemy().getCenterY();
+            if (getPlayer().isLeftPlayer()) mainPushRallyX = getHomeBase().getCenterX() + 600;
+            else if (getPlayer().isRightPlayer()) mainPushRallyX = getHomeBase().getCenterX() - 600;
+            mainPushRallyY = getHomeBase().getCenterY();
         }
 
         if (attackState.equals("Defend Workers")){
@@ -118,19 +135,31 @@ public abstract class TestTeamUnit extends Unit
 
         if (attackState.equals("Attack")){
             if (mainPushState.equals("Rally") || mainPushState.equals("Retreat") || mainPushState.equals("Heavy Retreat")){
-                if (getPlayer().isLeftPlayer()) mainPushRallyX = getHomeBase().getCenterX() - 1500;
-                else if (getPlayer().isRightPlayer()) mainPushRallyX = getHomeBase().getCenterX() - 1500;
+                if (getPlayer().isLeftPlayer()) mainPushRallyX = getHomeBase().getCenterX() + getHomeBase().getDistance(getEnemyBase()) / 2;
+                else if (getPlayer().isRightPlayer()) mainPushRallyX = getHomeBase().getCenterX() - getHomeBase().getDistance(getEnemyBase()) / 2;
                 mainPushRallyY = getHomeBase().getCenterY();
             }
             else {
-                mainPushRallyX = nearestEnemyThreat.getCenterX();
-                mainPushRallyY = nearestEnemyThreat.getCenterY();
+                if (getBiggestThreatInRadius(getMaxRange() * 2) != null) {
+                    mainPushRallyX = getBiggestThreatInRadius(getMaxRange() * 2).getCenterX();
+                    mainPushRallyY = getBiggestThreatInRadius(getMaxRange() * 2).getCenterY();
+                }
+                else{
+                    mainPushRallyX = nearestEnemyThreat.getCenterX();
+                    mainPushRallyY = nearestEnemyThreat.getCenterY();
+                }
             }
         }
 
         if (attackState.equals("Kill")){ // Best enemy to attack in lane?
-            mainPushRallyX = nearestEnemyThreat.getCenterX();
-            mainPushRallyY = nearestEnemyThreat.getCenterY();
+            if (getBiggestThreatInRadius(getMaxRange() * 2) != null) {
+                mainPushRallyX = getBiggestThreatInRadius(getMaxRange() * 2).getCenterX();
+                mainPushRallyY = getBiggestThreatInRadius(getMaxRange() * 2).getCenterY();
+            }
+            else{
+                mainPushRallyX = nearestEnemyThreat.getCenterX();
+                mainPushRallyY = nearestEnemyThreat.getCenterY();
+            }
         }
 
         if (nearestEnemyWorker != null) {
@@ -160,24 +189,71 @@ public abstract class TestTeamUnit extends Unit
     }
 
     public void movement() {
-        if (getDistance(getNearestAlly(this.getClass())) > 50) {
-            if (currentTarget != null) {
-                if (getDistance(currentTarget) < getWeaponOne().getMaxRange()) {
-                    turnTo(currentTarget);
-                    turnAround();
-                    move();
+        if (getDistance(getNearestAlly()) > 50) {
+            if (!tanks.isEmpty()) {
+                if (((getPlayer().isLeftPlayer() && getX() < furthestTankX) || (getPlayer().isRightPlayer() && getX() > furthestTankX)) && !myMainPushStrength.equals("Very High") && !(this instanceof Tank)) {
+                    if (currentTarget != null) {
+                        if (getDistance(currentTarget) < getWeaponOne().getMaxRange()) {
+                            turnTo(currentTarget);
+                            turnAround();
+                            move();
+                        } else {
+                            moveTo(mainPushRallyX, mainPushRallyY);
+                        }
+                    } else {
+                        moveTo(mainPushRallyX, mainPushRallyY);
+                    }
+                } else {
+                    if (this instanceof Tank || (myMainPushStrength.equals("Very High") && getDistance(getEnemyBase()) < 1000)){
+                        if (currentTarget != null) {
+                            if (getDistance(currentTarget) < getWeaponOne().getMaxRange()) {
+                                turnTo(currentTarget);
+                                turnAround();
+                                move();
+                            } else {
+                                moveTo(mainPushRallyX, mainPushRallyY);
+                            }
+                        } else {
+                            moveTo(mainPushRallyX, mainPushRallyY);
+                        }
+                    }
+                    else {
+                        turnTo(getNearestAlly(Tank.class));
+                        move();
+                    }
+                }
+            }
+            else{
+                if (currentTarget != null) {
+                    if (getDistance(currentTarget) < getWeaponOne().getMaxRange()) {
+                        turnTo(currentTarget);
+                        turnAround();
+                        move();
+                    } else {
+                        moveTo(mainPushRallyX, mainPushRallyY);
+                    }
                 } else {
                     moveTo(mainPushRallyX, mainPushRallyY);
                 }
-            } else {
-                moveTo(mainPushRallyX, mainPushRallyY);
             }
         }
         else{
-            turnTo(getNearestAlly(this.getClass()));
+            turnTo(getNearestAlly());
             turnAround();
             move();
         }
+    }
+
+    public void calculateFurthestTankX(){
+        tanks.clear();
+
+        for (Unit u : myAttackers){
+            if (u instanceof Tank) tanks.add(u);
+        }
+
+        tanks.sort((w1, w2) -> Float.compare(w1.getDistance(getEnemyBase()), w2.getDistance(getEnemyBase())));
+
+        if (!tanks.isEmpty()) furthestTankX = tanks.getFirst().getCenterX();
     }
 
     // Calculations
@@ -258,6 +334,13 @@ public abstract class TestTeamUnit extends Unit
         }
     }
 
+    public void calculateAntiMissiles(){
+        enemyAntiMissiles = 0;
+        for (Unit u : enemyThreats){
+            if (u.hasWeapon(AntiMissileSystem.class)) enemyAntiMissiles++;
+        }
+    }
+
     public void calculateEnemyMissiles(){
         enemyMissiles.clear();
 
@@ -285,39 +368,63 @@ public abstract class TestTeamUnit extends Unit
         nearestEnemyThreatNumDist = 0;
         enemyThreats.sort((e1, e2) -> Float.compare(e1.getDistance(getHomeBase()), e2.getDistance(getHomeBase())));
         if (!enemyThreats.isEmpty()){
+            nearestEnemyThreat = enemyThreats.getFirst();
+            for (int i = 0; i < enemyThreats.size(); i++) {
+                if ((getPlayer().isLeftPlayer() && enemyThreats.get(i).getX() > getHomeBase().getCenterX()) || (getPlayer().isRightPlayer() && enemyThreats.get(i).getX() < getHomeBase().getCenterX())){
+                    nearestEnemyThreat = enemyThreats.get(i);
+                    break;
+                }
+            }
+
+            if (attackState.equals("Attack") && mainPushAvgDist > getHomeBase().getDistance(getEnemyBase()) / 3){
+                for (int i = 0; i < enemyThreats.size(); i++) {
+                    if (enemyThreats.get(i).getAlliesInRadius(1000).size() + 1 > enemyThreats.size() * 0.25f) {
+                        if ((getPlayer().isLeftPlayer() && enemyThreats.get(i).getX() > getHomeBase().getCenterX()) || (getPlayer().isRightPlayer() && enemyThreats.get(i).getX() < getHomeBase().getCenterX())){
+                        nearestEnemyThreat = enemyThreats.get(i);
+                        break;
+                        }
+                    }
+                }
+            }
+
             if (attackState.equals("Kill")){
                 if (!getEnemyBase().getAlliesInRadius(1000).isEmpty()) nearestEnemyThreat = getEnemyBase().getNearestAlly();
                 else nearestEnemyThreat = getEnemyBase();
             }
-            nearestEnemyThreat = enemyThreats.getFirst();
+
             nearestEnemyThreatNumDist = nearestEnemyThreat.getDistance(getHomeBase());
         }
 
+//        if (nearestEnemyThreat.getAlliesInRadius(600).size() > enemyThreats.size() * 0.25f) {
+            if (nearestEnemyThreatNumDist > 10000) {
+                nearestEnemyThreatDist = "Very Far";
+            } else if (nearestEnemyThreatNumDist > 7000) {
+                nearestEnemyThreatDist = "Far";
+            } else if (nearestEnemyThreatNumDist > 4500) {
+                nearestEnemyThreatDist = "Moderate";
+            }else if (nearestEnemyThreatNumDist > 1500) {
+                nearestEnemyThreatDist = "Close";
+            } else if (nearestEnemyThreatNumDist > 750) {
+                nearestEnemyThreatDist = "Very Close";
+            } else {
+                nearestEnemyThreatDist = "Extremely Close";
+            }
+//        }
+//        else{
+//            if (nearestEnemyThreatNumDist > 1500) {
+//                nearestEnemyThreatDist = "Small Close";
+//            } else if (nearestEnemyThreatNumDist > 750) {
+//                nearestEnemyThreatDist = "Small Very Close";
+//            } else {
+//                nearestEnemyThreatDist = "Small Extremely Close";
+//            }
+//        }
 
-        if (nearestEnemyThreatNumDist > 10000){
-            nearestEnemyThreatDist = "Very Far";
-        }
-        else if (nearestEnemyThreatNumDist > 7000){
-            nearestEnemyThreatDist = "Far";
-        }
-        else if (nearestEnemyThreatNumDist > 4500){
-            nearestEnemyThreatDist = "Moderate";
-        }
-        else if (nearestEnemyThreatNumDist > 1500){
-            nearestEnemyThreatDist = "Close";
-        }
-        else if (nearestEnemyThreatNumDist > 750){
-            nearestEnemyThreatDist = "Very Close";
-        }
-        else{
-            nearestEnemyThreatDist = "Extremely Close";
-        }
     }
 
     public void calculateNearestEnemyWorker(){
         nearestEnemyWorker = getNearestEnemyWorker();
     }
-
 
     public void calculateMyAttackers(){
         myAttackers.clear();
@@ -326,6 +433,40 @@ public abstract class TestTeamUnit extends Unit
                 myAttackers.add(u);
             }
         }
+    }
+
+    public void calculateRelativePushStrength(){
+        int attackerSum = 0;
+        int threatSum = 0;
+
+        for (Unit u : myAttackers) {
+            if (u.getFrame().equals(Frame.LIGHT)) attackerSum += 2;
+            else if (u.getFrame().equals(Frame.MEDIUM)) attackerSum += 3;
+            else if (u.getFrame().equals(Frame.HEAVY)) attackerSum += 4;
+            else if (u.getFrame().equals(Frame.ASSAULT)) attackerSum += 5;
+        }
+
+        for (Unit u : enemyThreats){
+            if (u.getFrame().equals(Frame.LIGHT)) threatSum += 2;
+            else if (u.getFrame().equals(Frame.MEDIUM)) threatSum += 3;
+            else if (u.getFrame().equals(Frame.HEAVY)) threatSum += 4;
+            else if (u.getFrame().equals(Frame.ASSAULT)) threatSum += 5;
+        }
+
+        relativeAttackerStrength = attackerSum;
+        relativeEnemyThreatStrength = threatSum;
+    }
+
+    public void calculateMainPushAvgDist(){
+        float sum = 0;
+        if (!myAttackers.isEmpty()) {
+            for (Unit u : myAttackers) {
+                sum += getHomeBase().getDistance(u);
+            }
+            sum = sum / myAttackers.size();
+        }
+
+        mainPushAvgDist = sum;
     }
 
     public void calculateMyWorkers(){
@@ -338,47 +479,70 @@ public abstract class TestTeamUnit extends Unit
     }
 
     public void calculateMainPushStrength(){
-        if (myAttackers.size() > enemyThreats.size() * 2){
+        if (relativeAttackerStrength > relativeEnemyThreatStrength * 1.5){
             myMainPushStrength = "Very High";
         }
-        else if (myAttackers.size() > enemyThreats.size() * 1.5f){
+        else if (relativeAttackerStrength > relativeEnemyThreatStrength * 1.15f){
             myMainPushStrength = "High";
         }
-        else if (myAttackers.size() > enemyThreats.size()){
+        else if (relativeAttackerStrength > relativeEnemyThreatStrength){
             myMainPushStrength = "Moderately High";
         }
-        else if (myAttackers.size() < enemyThreats.size()){
-            myMainPushStrength = "Moderately Low";
+        else if (relativeAttackerStrength * 2 < relativeEnemyThreatStrength){
+            myMainPushStrength = "Very Low";
         }
-        else if (myAttackers.size() * 1.5f < enemyThreats.size()){
+        else if (relativeAttackerStrength * 1.5f < relativeEnemyThreatStrength){
             myMainPushStrength = "Low";
         }
-        else if (myAttackers.size() * 2 < enemyThreats.size()){
-            myMainPushStrength = "Very Low";
+        else if (relativeAttackerStrength < relativeEnemyThreatStrength){
+            myMainPushStrength = "Moderately Low";
         }
         else {
             myMainPushStrength = "Moderate";
         }
+//        if (myAttackers.size() > enemyThreats.size() * 1.5){
+//            myMainPushStrength = "Very High";
+//        }
+//        else if (myAttackers.size() > enemyThreats.size() * 1.15f){
+//            myMainPushStrength = "High";
+//        }
+//        else if (myAttackers.size() > enemyThreats.size()){
+//            myMainPushStrength = "Moderately High";
+//        }
+//        else if (myAttackers.size() * 2 < enemyThreats.size()){
+//            myMainPushStrength = "Very Low";
+//        }
+//        else if (myAttackers.size() * 1.5f < enemyThreats.size()){
+//            myMainPushStrength = "Low";
+//        }
+//        else if (myAttackers.size() < enemyThreats.size()){
+//            myMainPushStrength = "Moderately Low";
+//        }
+//        else {
+//            myMainPushStrength = "Moderate";
+//        }
     }
 
     public void calculateMainPushDensity(){
         if (myAttackers.contains(this)){
-            int alliesInRadius = getAlliesInRadius(2500).size(); // can make excluding pests, etc
+            int alliesInRadius = getAlliesInRadius(1250).size(); // can make excluding pests, etc
             if (alliesInRadius == myAttackers.size()){
                 myMainPushDensity = "Perfect";
-            }
-            else if (alliesInRadius < myAttackers.size() * 0.85f){
-                myMainPushDensity = "Decent";
-            }
-            else if (alliesInRadius < myAttackers.size() * 0.6f){
-                myMainPushDensity = "Moderate";
-            }
-            else if (alliesInRadius < myAttackers.size() * 0.35f){
-                myMainPushDensity = "Bad";
             }
             else if (alliesInRadius < myAttackers.size() * 0.2f){
                 myMainPushDensity = "Terrible";
             }
+            else if (alliesInRadius < myAttackers.size() * 0.35f){
+                myMainPushDensity = "Bad";
+            }
+            else if (alliesInRadius < myAttackers.size() * 0.6f){
+                myMainPushDensity = "Moderate";
+            }
+            else if (alliesInRadius < myAttackers.size() * 0.85f){
+                myMainPushDensity = "Decent";
+            }
+
+
         }
     }
 
@@ -440,6 +604,10 @@ public abstract class TestTeamUnit extends Unit
             case "Close" -> teamAlert = "High";
             case "Very Close" -> teamAlert = "Very High";
             case "Extremely Close" -> teamAlert = "Extreme";
+            case "Small Close" -> teamAlert = "Small High";
+            case "Small Very Close" -> teamAlert = "Small Very High";
+            case "Small Extremely Close" -> teamAlert = "Small Extreme";
+
 
             default -> teamAlert = "Undecided";
         }
@@ -463,29 +631,27 @@ public abstract class TestTeamUnit extends Unit
                 attackState = "Defend Workers";
             }
             else {
-                if (myMainPushStrength.equals("Very Low") || myMainPushStrength.equals("Low") || myMainPushStrength.equals("Moderately Low") || myMainPushStrength.equals("Moderate") || myMainPushStrength.equals("Moderately High")) {
-                    attackState = "Defense";
-                }
-                else if (myMainPushStrength.equals("High")){
+//                if (myMainPushStrength.equals("High") || myMainPushStrength.equals("Moderately High") || getAllies().size() > 77){
                     attackState = "Attack";
-                }
-                else if (myMainPushStrength.equals("Very High")){
+//                }
+                if (myMainPushStrength.equals("Very High")){ // else
                     attackState = "Kill";
-                }
-                else{
-                    attackState = "Defense";
                 }
             }
         }
         if (teamAlert.equals("Low") || teamAlert.equals("Moderate")){
-            if (myMainPushStrength.equals("Very High")){
+            if (myMainPushStrength.equals("Very High") || myMainPushStrength.equals("High") || myMainPushStrength.equals("Moderately High") || getAllies().size() > 75){
                 attackState = "Attack";
             }
             else{
                 attackState = "Growth";
             }
+
+            if (teamAlert.equals("Moderate") && myMainPushStrength.equals("Very High")){
+                attackState = "Kill";
+            }
         }
-        if (teamAlert.equals("Very Low")){
+        if (teamAlert.equals("Very Low") && !myMainPushStrength.equals("Very High") && !myMainPushStrength.equals("High")){ // Last part is a gamble ig
             attackState = "Growth";
         }
     }
@@ -674,12 +840,44 @@ public abstract class TestTeamUnit extends Unit
         return res;
     }
 
+    public boolean isResourceSafe(Resource r){
+        float myDist = getDistance(r);
+        float enemyDist = Float.MAX_VALUE;
+        Unit enemy = getNearestEnemy();
+
+        for (Unit u : enemyThreats){
+            if (enemyDist > u.getDistance(r)) {
+                enemyDist = u.getDistance(r);
+                enemy = u;
+            }
+        }
+
+        if (enemyDist > enemy.getMaxRange() * 1.5f) return true;
+        return false;
+    }
+
+    public boolean isNodeSafe(Node n){
+        float myDist = getDistance(n);
+        float enemyDist = Float.MAX_VALUE;
+        Unit enemy = getNearestEnemy();
+
+        for (Unit u : enemyThreats){
+            if (enemyDist > u.getDistance(n)) {
+                enemyDist = u.getDistance(n);
+                enemy = u;
+            }
+        }
+
+        if (enemyDist > enemy.getMaxRange() * 1.5f) return true;
+        return false;
+    }
+
     public ArrayList<Resource> getClosestResourcesToResource(Resource r){
         ArrayList<Resource> threeClosest = new ArrayList<>();
         ArrayList<Resource> res = new ArrayList<>();
 
         for (Resource resource : ResourceManager.getResources()){
-            if (!TestTeam.resourceAssigner.assignedResources.contains(resource) && !Gatherer.allDumpedResources.contains(resource)){
+            if (!TestTeam.resourceAssigner.assignedResources.contains(resource) && !Gatherer.allDumpedResources.contains(resource) && isResourceSafe(resource)){
 //                if (getNearestRealEnemy().getDistance(r) > getDistance(r)) {
                     res.add(resource);
 //                }
@@ -740,7 +938,7 @@ public abstract class TestTeamUnit extends Unit
 
         if (nodeChain != null) {
             for (Node n : nodeChain) {
-                if (n.isAlive() && n.isInBounds()){ // && getDistance(n) < getNearestEnemyThreat().getDistance(n)
+                if (n.isAlive() && n.isInBounds() && isNodeSafe(n)){ // && getDistance(n) < getNearestEnemyThreat().getDistance(n)
                     newNodeChain.add(n);
                 }
             }
