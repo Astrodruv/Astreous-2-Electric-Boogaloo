@@ -1,5 +1,6 @@
 package teams.student.NeverendingKnights;
 
+import objects.entity.node.NodeManager;
 import objects.entity.unit.BaseShip;
 import objects.resource.Resource;
 import objects.resource.ResourceManager;
@@ -15,6 +16,7 @@ public class ResourceAssigner {
     public ArrayList<Resource> assignedResources;
     public BaseShip homeBase;
     public Player player;
+    public boolean allResourcesFinished;
 
     public ResourceAssigner(Player p){
         player = p;
@@ -22,15 +24,22 @@ public class ResourceAssigner {
         resourcesByDistToHomeBase = new ArrayList<>();
         assignedResources = new ArrayList<>();
         resourcesByDensity = new ArrayList<>();
+        allResourcesFinished = false;
     }
 
     public void updateResources(Gatherer g){
         if (homeBase == null) homeBase = player.getMyBase();
         resourcesByDistToHomeBase.clear();
         for (Resource r : ResourceManager.getResources()) {
-            if (!assignedResources.contains(r) && !Gatherer.allDumpedResources.contains(r) && r.isInBounds()){
-                    resourcesByDistToHomeBase.add(r);
+            if (!assignedResources.contains(r) && !Gatherer.allDumpedResources.contains(r) && r.isInBounds() && g.isResourceSafe(r)){
+                resourcesByDistToHomeBase.add(r);
             }
+        }
+        if (resourcesByDistToHomeBase.isEmpty() && NodeManager.getNodes().isEmpty()){
+            allResourcesFinished = true;
+        }
+        else{
+            allResourcesFinished = false;
         }
         resourcesByDistToHomeBase.sort((r1, r2) -> Float.compare(r1.getDistance(homeBase), r2.getDistance(homeBase)));
     }

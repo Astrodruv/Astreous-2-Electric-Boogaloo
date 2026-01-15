@@ -8,13 +8,14 @@ import objects.entity.unit.Style;
 import objects.entity.unit.Unit;
 import org.newdawn.slick.Color;
 import org.newdawn.slick.Graphics;
-import teams.student.NeverendingKnights.NeverendingKnightsUnit;
 
-public class Pest extends NeverendingKnightsUnit
+public class Pest extends teams.student.NeverendingKnights.NeverendingKnightsUnit
 {
     private String stage;
     private Unit unitToAttack;
+    private Unit passByUnit;
     public int rand;
+    private String safe;
 
     public void design()
     {
@@ -27,18 +28,30 @@ public class Pest extends NeverendingKnightsUnit
 
         stage = "Waiting";
         unitToAttack = null;
+        passByUnit = null;
         rand = (int) (Math.random() * 2);
+        safe = "y";
+//        rand = 0;
     }
 
     public void action() {
-        unitToAttack = getLowestSafeEnemyWorker(getWeaponOne().getMaxRange() * 4);
+        unitToAttack = getLowestSafeEnemyWorker(getWeaponOne().getMaxRange() * 3);
+        passByUnit = getLowestAttackingEnemy(getWeaponOne().getMaxRange() * 2);
 
-        if(getHomeBase().getDistance(getEnemyBase()) < 800)
+        if(getHomeBase().getDistance(getEnemyBase()) < 6000 || getEnemyBase().getPercentEffectiveHealth() < .5f)
         {
             moveTo(getEnemyBase());
             getWeaponOne().use(getNearestEnemy());
         }
+
+        if(stage.equals("Attacking") && suicideCheck(getWeaponOne().getMaxRange() * 2, this))
+        {
+            stage = "Running";
+            safe = "no";
+        }
+
         if (stage.equals("Waiting")){
+
             if(rand == 0)
             {
                 moveTo(getHomeBase().getCenterX(), 3500);
@@ -49,13 +62,21 @@ public class Pest extends NeverendingKnightsUnit
             }
 
             getWeaponOne().use(unitToAttack);
+            if(unitToAttack == null) {
+                getWeaponOne().use(passByUnit);
+            }
 
-            if (getAlliesInRadius(400, Pest.class).size() >= 3){ //getAlliesInRadius(400, Creak.class).size() > 1
+//            if((this.getPosition().getY() > getHomeBase().getCenterY() + 3250 && this.getPosition().getY() < getHomeBase().getCenterY() + 3750)
+//                    || (this.getPosition().getY() < getHomeBase().getCenterY() - 3250 && this.getPosition().getY() > getHomeBase().getCenterY() - 3750))
+//            {
+            if (getAlliesInRadius(400, Pest.class).size() > 4){
                 stage = "Flanking";
             }
+//            }
+
+
         }
         if (stage.equals("Flanking")){
-            getWeaponOne().use(unitToAttack);
 
             if(rand == 0) {
                 moveTo(getEnemyBase().getCenterX(), 3500);
@@ -68,6 +89,11 @@ public class Pest extends NeverendingKnightsUnit
                 if (getDistance(getEnemyBase().getCenterX(), -3500) < 300){
                     stage = "Attacking";
                 }
+            }
+
+            getWeaponOne().use(unitToAttack);
+            if(unitToAttack == null) {
+                getWeaponOne().use(passByUnit);
             }
         }
         if (stage.equals("Attacking")){
@@ -100,6 +126,21 @@ public class Pest extends NeverendingKnightsUnit
                 getWeaponOne().use(getNearestEnemy());
             }
         }
+        if(stage.equals("Running"))
+        {
+            if(getPlayer().isRightPlayer())
+            {
+                moveTo(getPosition().getX() - 5000, getPosition().getY());
+            }
+            if(getPlayer().isLeftPlayer())
+            {
+                moveTo(getPosition().getX() + 5000, getPosition().getY());
+            }
+            if(!suicideCheck(getWeaponOne().getMaxRange() * 2, this))
+            {
+                stage = "Attacking";
+            }
+        }
     }
 
     public void draw(Graphics g){
@@ -108,6 +149,7 @@ public class Pest extends NeverendingKnightsUnit
         if (unitToAttack != null){
             g.drawLine(getCenterX(), getCenterY(), unitToAttack.getCenterX(), unitToAttack.getCenterY());
         }
+        dbgMessage(safe);
     }
 
 

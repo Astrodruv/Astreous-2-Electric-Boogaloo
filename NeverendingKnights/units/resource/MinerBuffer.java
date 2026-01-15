@@ -7,9 +7,9 @@ import objects.entity.node.Node;
 import objects.entity.unit.Frame;
 import objects.entity.unit.Model;
 import objects.entity.unit.Style;
+import objects.entity.unit.Unit;
 import org.newdawn.slick.Color;
 import org.newdawn.slick.Graphics;
-import player.Player;
 import teams.student.NeverendingKnights.NeverendingKnightsUnit;
 
 import java.util.ArrayList;
@@ -41,8 +41,21 @@ public class MinerBuffer extends NeverendingKnightsUnit {
         if (bestNodes != null && !bestNodes.isEmpty()) bestNode = bestNodes.getFirst();
         else bestNode = getNearestNode();
 
-        moveTo(bestNode);
-        if (getDistance(bestNode) < 150) getWeaponOne().use();
+        if (getNearestEnemyThreat() != null) {
+            Unit threat = getNearestEnemyThreat();
+            if (getDistance(threat) > threat.getMaxRange() * 1.25f) {
+                moveTo(bestNode);
+                if (getDistance(bestNode) < 150) getWeaponOne().use();
+            } else {
+                if (isInBounds()) {
+                    turnTo(threat);
+                    turnAround();
+                    move();
+                } else {
+                    moveTo(getHomeBase());
+                }
+            }
+        }
 
         if (bestNode != null && bestNode.isDead()) bestNodes.remove(bestNode);
 

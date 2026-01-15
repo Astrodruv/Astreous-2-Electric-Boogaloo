@@ -1,34 +1,24 @@
 package teams.student.NeverendingKnights.units;
 
-import components.mod.utility.AthenaMod;
-import components.weapon.Weapon;
-import components.weapon.energy.Laser;
-import components.weapon.utility.CommandRelay;
+import components.upgrade.Munitions;
+import components.upgrade.Shield;
+import components.weapon.energy.HeavyLaser;
 import objects.entity.unit.Frame;
 import objects.entity.unit.Model;
 import objects.entity.unit.Style;
-import org.newdawn.slick.Graphics;
-import player.Player;
-import teams.student.NeverendingKnights.NeverendingKnightsUnit;
 
-public class Commander extends NeverendingKnightsUnit {
-
-
+public class Commander extends Sniper{
     public void design()
     {
-        setFrame(Frame.ASSAULT);
+        setFrame(Frame.HEAVY);
         setModel(Model.ARTILLERY);
-        setStyle(Style.BUBBLE);
+        setStyle(Style.WEDGE);
 
-        add(AthenaMod.class);
-//        add(Laser.class);
-        add(CommandRelay.class);
-        add(Laser.class);
+        add(HeavyLaser.class);
+        add(Munitions.class);
+        add(Shield.class);
+//        add(PoseidonMod.class);
 
-    }
-
-
-    public void draw(Graphics g) {
 
     }
 }

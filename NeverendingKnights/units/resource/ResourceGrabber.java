@@ -6,7 +6,6 @@ import objects.entity.unit.Model;
 import objects.entity.unit.Style;
 import objects.resource.Resource;
 import org.newdawn.slick.Graphics;
-import player.Player;
 import teams.student.NeverendingKnights.NeverendingKnightsUnit;
 
 public class ResourceGrabber extends NeverendingKnightsUnit {

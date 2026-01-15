@@ -1,12 +1,6 @@
 package teams.student.NeverendingKnights;
 
-import components.weapon.economy.Collector;
-import components.weapon.economy.Drillbeam;
-import components.weapon.explosive.HeavyMissile;
-import components.weapon.explosive.Missile;
-import components.weapon.utility.AntiMissileSystem;
-import engine.states.Game;
-import objects.entity.unit.Frame;
+import objects.entity.node.NodeManager;
 import objects.entity.unit.Unit;
 import objects.resource.ResourceManager;
 import org.newdawn.slick.Graphics;
@@ -24,236 +18,200 @@ public class NeverendingKnights extends Player
 
     public static ResourceAssigner resourceAssigner;
     public static String gameStage;
-
-    // Detects the furthest of each unit to detect which one should set the maxX
-    public static Tank furthestTank;
-    public static Sniper furthestSniper;
-
-    public static int tanksCount;
     public static int resourceGrabberCount;
+
+    public static int estimatedMapResources;
 
     public static ArrayList<Unit> tanks;
 
     public void setup()
     {
         setName("Neverending Knights");
-        setTeamImage("src/teams/student/NeverendingKnights/teamLogo.png");
-        setTitle("Newbie Team");
+        setTeamImage("src/teams/student/neverendingKnights/teamLogo.png");
+        setTitle("Neverending Knights");
 
-        setColorPrimary(0, 0, 128);
-        setColorSecondary(255, 215, 0);
-        setColorAccent(255, 255, 255);
+        setColorPrimary(0, 255, 255);
+        setColorSecondary(0, 255, 255);
+        setColorAccent(255, 128, 128);
 
         resourceAssigner = new ResourceAssigner(this);
 
         gameStage = "Instant";
-
-        furthestTank = null;
-
-        tanksCount = 0;
-        resourceGrabberCount = 0;
-
-        tanks = null;
-
+        estimatedMapResources = (getAllNodes().size() * 12) + ResourceManager.getResources().size();
     }
 
-    public void strategy()
-    {
-        // Makes the actual strategy method a little cleaner and easier to understand
+    public void strategy() {
+        resourceGrabberCount = countMyUnits(ResourceGrabber.class);
 
-        if (gameStage.equals("Instant")){
-            instantStrategy();
-        }
-        else if (gameStage.equals("Start")){
-            startStrategy();
-        }
-        else if (gameStage.equals("Midgame")){
-            midGameStrategy();
-        }
-        else if (gameStage.equals("Endgame")){
-            endgameStrategy();
-        }
-
-        updateUnitCounts();
-        updateUnitLists();
-        furthestTank = (Tank) getFurthestTank();
-
-        if (Game.getTime() > 120){
-            gameStage = "Start";
-        }
-        if (getMyBase().getDistance(getEnemyBase()) < 8000){
-            gameStage = "Midgame";
-        }
-        if (getMyBase().getDistance(getEnemyBase()) < 2500){
-            gameStage = "Endgame";
-        }
-
-    }
-
-    public void instantStrategy(){
-        if (countUnit(this, ResourceGrabber.class) < 2){
+        if (countUnit(this, ResourceGrabber.class) < 2) {
             buildUnit(ResourceGrabber.class);
         }
-        else if (countUnit(this, MinerBuffer.class) < 1){
-            buildUnit(MinerBuffer.class);
-        } // 12 resources
-        else if (countUnit(this, Miner.class) < 4){
-            buildUnit(Miner.class);
-        } // 36
-        else if (countUnit(this, Gatherer.class) < 4){
-            buildUnit(Gatherer.class);
-        }
-        else if (countUnit(this, Pest.class) < 10){
-            buildUnit(Pest.class);
-        }
-    }
-
-    public void startStrategy(){
-        if (countUnit(this, ResourceGrabber.class) < 2){
-            buildUnit(ResourceGrabber.class);
-        }
-        if (countUnit(this, MinerBuffer.class) < 1){
+        if (countUnit(this, MinerBuffer.class) < 1) {
             buildUnit(MinerBuffer.class);
         }
-        if (countUnit(this, Pest.class) < 6){
-            buildUnit(Pest.class);
-        }
-        if (countUnit(this, Creak.class) < 4){
-            buildUnit(Creak.class);
-        }
-        if(countUnit(this, Gatherer.class) < 12) {
-            buildUnit(Gatherer.class);
-        }
-        if (countUnit(this, Miner.class) < 8){
-            buildUnit(Miner.class);
-        }
-        if (countUnit(this, Tank.class) < 10) {
-            buildUnit(Tank.class);
-        }
-        if (countUnit(this, Sniper.class) < 15) {
-            buildUnit(Sniper.class);
-        }
-        if (countUnit(this, MissileLauncher.class) < 6) {
-            buildUnit(MissileLauncher.class);
-        }
-    }
 
-    public void midGameStrategy(){
-        if (countUnit(this, MinerBuffer.class) < 1){
-            buildUnit(MinerBuffer.class);
-        }
-        if (countUnit(this, ResourceGrabber.class) < 2){
-            buildUnit(ResourceGrabber.class);
-        }
-        if (countUnit(this, Pest.class) < 5){
-            buildUnit(Pest.class);
-        }
-        if (countUnit(this, Creak.class) < 6){
-            buildUnit(Creak.class);
-        }
-        if(countUnit(this, Gatherer.class) < 12) {
-            buildUnit(Gatherer.class);
-        }
-        if (countUnit(this, Miner.class) < 8){
-            buildUnit(Miner.class);
-        }
 
-        if (getFleetValueUnitPercentage(Sniper.class) < .25f) {
-            buildUnit(Sniper.class);
-        }
-        if (getFleetValueUnitPercentage(MissileLauncher.class) < .15f) {
-            buildUnit(MissileLauncher.class);
-        }
-        if (getFleetValueUnitPercentage(Tank.class) < .2f) {
-            buildUnit(Tank.class);
-        }
-    }
-
-    public void endgameStrategy(){
-        if (countUnit(this, ResourceGrabber.class) < 2){
-                buildUnit(ResourceGrabber.class);
-            }
-            if (countUnit(this, Miner.class) < 1){
+        if (timer < 180 * 60) {
+            if (getFleetValueUnitPercentage(Miner.class) < 0.25f) {
                 buildUnit(Miner.class);
             }
-            if(countUnit(this, Gatherer.class) < 1){
+            if (getFleetValueUnitPercentage(Gatherer.class) < 0.25f) {
                 buildUnit(Gatherer.class);
             }
-            if (countUnit(this,Sniper.class) < 40) {
-                buildUnit(Sniper.class);
+        } else if (timer < 300 * 60) {
+            if (getFleetValueUnitPercentage(Miner.class) < 0.15f) {
+                buildUnit(Miner.class);
             }
-            if (countUnit(this, MissileLauncher.class) < 15) {
-                buildUnit(MissileLauncher.class);
-            }
-            if (countUnit(this, Tank.class) < 15) {
-                buildUnit(Tank.class);
-            }
-    }
-
-    public void updateUnitCounts(){
-        tanksCount = countMyUnits(Tank.class);
-        resourceGrabberCount = countMyUnits(ResourceGrabber.class);
-    }
-
-    public void updateUnitLists(){
-        tanks = getUnits(this, Tank.class);
-    }
-
-    public Unit getFurthestTank(){
-        ArrayList<Unit> tanks = getMyUnits(Tank.class);
-
-        tanks.sort((tank1, tank2) -> Float.compare(tank1.getDistance(getEnemyBase()), tank2.getDistance(getEnemyBase())));
-
-        if (!tanks.isEmpty()) return tanks.getFirst();
-        return null;
-    }
-
-    public boolean hasAntiMissiles() {
-        for (Unit l : getEnemyUnits()) {
-            if (l.hasComponent(AntiMissileSystem.class)) {
-                return true;
+            if (getFleetValueUnitPercentage(Gatherer.class) < 0.2f) {
+                buildUnit(Gatherer.class);
             }
         }
-        return false;
-    }
-
-    public boolean hasManyMissiles(){
-        int totalMissiles = 0;
-
-        for (Unit l: getEnemyUnits()){
-            if (l.hasComponent(Missile.class) || l.hasComponent(HeavyMissile.class)) {
-                totalMissiles++;
+        else if (timer < 480 * 60) {
+            if (getFleetValueUnitPercentage(Miner.class) < 0.1f) {
+                buildUnit(Miner.class);
+            }
+            if (getFleetValueUnitPercentage(Gatherer.class) < 0.1f) {
+                buildUnit(Gatherer.class);
+            }
+            if (getFleetValueUnitPercentage(Pest.class) < 0.05f){
+                buildUnit(Pest.class);
+            }
+        }
+        else if (timer < 700 * 60) {
+            if (getFleetValueUnitPercentage(Miner.class) < 0.05f) {
+                buildUnit(Miner.class);
+            }
+            if (getFleetValueUnitPercentage(Gatherer.class) < 0.15f) {
+                buildUnit(Gatherer.class);
+            }
+        }
+        else if (timer < 900 * 60) {
+            if (getFleetValueUnitPercentage(Gatherer.class) < 0.1f) {
+                buildUnit(Gatherer.class);
             }
         }
 
-        if (totalMissiles > 5) return true;
-        return false;
-    }
-
-    public boolean hasManyRushUnits(){
-        int totalRush = 0;
-
-        for (Unit l : getEnemyUnits()){
-            if (l.getFrame() == Frame.LIGHT && !l.hasComponent(Collector.class) && !l.hasComponent(Drillbeam.class)){
-                totalRush++;
-            }
+        if (getFleetValueUnitPercentage(Tank.class) < 0.2f) {
+            buildUnit(Tank.class);
+        }
+        if (getFleetValueUnitPercentage(Sniper.class) < 0.5f){
+            buildUnit(Sniper.class);
+        }
+        if (getFleetValueUnitPercentage(MissileLauncher.class) < 0.15f) {
+            buildUnit(MissileLauncher.class);
         }
 
-        if (totalRush >= 5){
-            return true;
-        }
-        return false;
+
+//
+//        if (TestTeamUnit.teamStrategy.equals("Anti-Rush")) {
+//            if (getFleetValueUnitPercentage(Tank.class) < 0.15f) {
+//                buildUnit(Tank.class);
+//            }
+//            if (getFleetValueUnitPercentage(Sniper.class) < 0.6f){
+//                buildUnit(Sniper.class);
+//            }
+//            if (getFleetValueUnitPercentage(MissileLauncher.class) < 0.15f) {
+//                buildUnit(MissileLauncher.class);
+//            }
+//
+//        } else if (TestTeamUnit.teamStrategy.equals("Buildup")) {
+//            if (getFleetValueUnitPercentage(Tank.class) < 0.2f) {
+//                buildUnit(Tank.class);
+//            }
+//            if (getFleetValueUnitPercentage(Sniper.class) < 0.45f) {
+//                buildUnit(Sniper.class);
+//            }
+//            if (getFleetValueUnitPercentage(MissileLauncher.class) < 0.15f) {
+//                buildUnit(MissileLauncher.class);
+//            }
+//        } else if (TestTeamUnit.teamStrategy.equals("Range")) {
+//            if (getFleetValueUnitPercentage(Tank.class) < 0.2f) {
+//                buildUnit(Tank.class);
+//            }
+//            if (getFleetValueUnitPercentage(Sniper.class) < 0.4f) {
+//                buildUnit(Sniper.class);
+//            }
+//            if (getFleetValueUnitPercentage(MissileLauncher.class) < 0.25f) {
+//                buildUnit(MissileLauncher.class);
+//            }
+//        } else if (TestTeamUnit.teamStrategy.equals("Rush")) {
+//            if (getFleetValueUnitPercentage(Tank.class) < 0.25f) {
+//                buildUnit(Tank.class);
+//            }
+//            if (getFleetValueUnitPercentage(Sniper.class) < 0.5f) {
+//                buildUnit(Sniper.class);
+//            }
+//
+//        } else if (TestTeamUnit.teamStrategy.equals("DPS Buildup")) {
+//            if (getFleetValueUnitPercentage(Tank.class) < 0.2f) {
+//                buildUnit(Tank.class);
+//            }
+//            if (getFleetValueUnitPercentage(Sniper.class) < 0.5f) {
+//                buildUnit(Sniper.class);
+//            }
+//            if (getFleetValueUnitPercentage(MissileLauncher.class) < 0.2f) {
+//                buildUnit(MissileLauncher.class);
+//            }
+//        } else if (TestTeamUnit.teamStrategy.equals("Range Buildup")) {
+//            if (getFleetValueUnitPercentage(Tank.class) < 0.2f) {
+//                buildUnit(Tank.class);
+//            }
+//            if (getFleetValueUnitPercentage(Sniper.class) < 0.5f) {
+//                buildUnit(Sniper.class);
+//            }
+//            if (getFleetValueUnitPercentage(MissileLauncher.class) < 0.2f) {
+//                buildUnit(MissileLauncher.class);
+//            }
+//        } else if (TestTeamUnit.teamStrategy.equals("Undecided")) {
+//            if (getFleetValueUnitPercentage(Tank.class) < 0.15f) {
+//                buildUnit(Tank.class);
+//            }
+//
+//            if (getFleetValueUnitPercentage(Sniper.class) < 0.5f) {
+//                buildUnit(Sniper.class);
+//            }
+//
+//            if (getFleetValueUnitPercentage(MissileLauncher.class) < 0.2f) {
+//                buildUnit(MissileLauncher.class);
+//            }
+//        }
     }
 
     public void draw(Graphics g)
     {
-        addMessage("Assigned: " + resourceAssigner.assignedResources.size());
-        addMessage("Total Counted: " + resourceAssigner.resourcesByDistToHomeBase.size());
-        addMessage("Total Counted + Assigned: " + (resourceAssigner.resourcesByDistToHomeBase.size() + resourceAssigner.assignedResources.size()));
-        addMessage("Actual Total: " + ResourceManager.getResources().size());
-        if (Gatherer.allDumpedResources != null) addMessage("Total Dumped: " + Gatherer.allDumpedResources.size());
+//        addMessage("Assigned: " + resourceAssigner.assignedResources.size());
+//        addMessage("Total Counted: " + resourceAssigner.resourcesByDistToHomeBase.size());
+//        addMessage("Total Counted + Assigned: " + (resourceAssigner.resourcesByDistToHomeBase.size() + resourceAssigner.assignedResources.size()));
+//        addMessage("Actual Total: " + ResourceManager.getResources().size());
+//        if (Gatherer.allDumpedResources != null) addMessage("Total Dumped: " + Gatherer.allDumpedResources.size());
+//
+//        addMessage("Game Stage: " + gameStage);
 
-        addMessage("Game Stage: " + gameStage);
+        addMessage("Team Strategy: " + NeverendingKnightsUnit.teamStrategy);
+        addMessage("Team Alert: " + NeverendingKnightsUnit.teamAlert);
+        addMessage("Main Push Strength: " + NeverendingKnightsUnit.myMainPushStrength);
+        addMessage("Main Push Density: " + NeverendingKnightsUnit.myMainPushDensity);
+        addMessage("Main Push : " + NeverendingKnightsUnit.mainPushState);
+        addMessage("Attack State : " + NeverendingKnightsUnit.attackState);
+        addMessage("Main Push Avg Dist : " + (NeverendingKnightsUnit.mainPushAvgDist > getMyBase().getDistance(getEnemyBase()) / 3));
+        addMessage(" ");
+        addMessage("Enemy Scheme: " + NeverendingKnightsUnit.enemyAttackScheme);
+        addMessage("Enemy Workers: " + NeverendingKnightsUnit.enemyWorkerStrength);
+        addMessage("Nearest Enemy: " + NeverendingKnightsUnit.nearestEnemyThreatDist);
+        addMessage("Missile Threat: " + NeverendingKnightsUnit.enemyMissileThreat);
+        addMessage(" ");
+        addMessage("Attacker Value: " + NeverendingKnightsUnit.relativeAttackerStrength);
+        addMessage("Threat Value: " + NeverendingKnightsUnit.relativeEnemyThreatStrength);
+        addMessage(" ");
+        addMessage("Light Threats: " + NeverendingKnightsUnit.lightEnemyThreats);
+        addMessage("Medium Threats: " + NeverendingKnightsUnit.mediumEnemyThreats);
+        addMessage("Heavy Threats: " + NeverendingKnightsUnit.heavyEnemyThreats);
+        addMessage("Assault Threats: " + NeverendingKnightsUnit.assaultEnemyThreats);
+        addMessage(" ");
+        addMessage("Nodes: " + NodeManager.getNodes().size());
+        addMessage("Resources: " + ResourceManager.getResources().size());
+        addMessage("Estimated Resources: " + estimatedMapResources);
+
     }
 
 }

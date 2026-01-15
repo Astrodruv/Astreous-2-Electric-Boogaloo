@@ -2,10 +2,7 @@ package teams.student.NeverendingKnights.units;
 
 import components.upgrade.Plating;
 import components.upgrade.Shield;
-import components.weapon.economy.Drillbeam;
-import components.weapon.energy.Laser;
 import components.weapon.explosive.Missile;
-import components.weapon.utility.ElectromagneticPulse;
 import objects.entity.unit.Frame;
 import objects.entity.unit.Model;
 import objects.entity.unit.Style;
@@ -17,8 +14,11 @@ import teams.student.NeverendingKnights.NeverendingKnightsUnit;
 public class Creak extends NeverendingKnightsUnit {
 
     public String stage;
+    public String release;
     private Unit unitToAttack;
+    private Unit resourceUnit;
     private int rand;
+    private int timer;
 
 
     public void design() {
@@ -31,15 +31,21 @@ public class Creak extends NeverendingKnightsUnit {
         add(Missile.class);
 
         stage = "Waiting";
+        release = "false";
         unitToAttack = null;
+        resourceUnit = null;
         rand = (int) (Math.random() * 2);
+        timer = 0;
+        creakActive(false);
+//        rand = 0;
     }
 
     public void action() {
 
-        unitToAttack = getLowestAttackingEnemy(getWeaponOne().getMaxRange() * 2);
+        unitToAttack = getLowestAttackingEnemy(getWeaponOne().getMaxRange() * 3);
+        resourceUnit = getLowestSafeEnemyWorker(getWeaponOne().getMaxRange() * 2);
 
-        if(getHomeBase().getDistance(getEnemyBase()) < 800)
+        if(getHomeBase().getDistance(getEnemyBase()) < 4000 || getEnemyBase().getPercentEffectiveHealth() < .9f)
         {
             moveTo(getEnemyBase());
             getWeaponOne().use(getNearestEnemy());
@@ -50,15 +56,27 @@ public class Creak extends NeverendingKnightsUnit {
             else moveTo(getHomeBase().getCenterX(), -3500);
 
             getWeaponOne().use(unitToAttack);
+            getWeaponOne().use(resourceUnit);
 //            getWeaponTwo().use(unitToAttack);
 
-            if (getAlliesInRadius(400, Creak.class).size() >= 3){
+//            if((this.getPosition().getY() > getHomeBase().getCenterY() + 3250 && this.getPosition().getY() < getHomeBase().getCenterY() + 3750)
+//                    || (this.getPosition().getY() < getHomeBase().getCenterY() - 3250 && this.getPosition().getY() > getHomeBase().getCenterY() - 3750))
+//            {
+//                stage = "Flanking";
+//            }
+
+            if (getAlliesInRadius(400, Creak.class).size() >= 3 ){
                 stage = "Flanking";
             }
         }
         if (stage.equals("Flanking")){
 
+            timer++;
+
             getWeaponOne().use(unitToAttack);
+            if(unitToAttack == null) {
+                getWeaponOne().use(resourceUnit);
+            }
 //            getWeaponTwo().use(unitToAttack);
 
             if(rand == 0) {
@@ -72,6 +90,12 @@ public class Creak extends NeverendingKnightsUnit {
                 if (getDistance(getEnemyBase().getCenterX(), -3500) < 300){
                     stage = "Attacking";
                 }
+            }
+
+            if(timer > 300)
+            {
+                creakActive(true);
+                release = "true";
             }
         }
         if (stage.equals("Attacking")){
@@ -112,6 +136,8 @@ public class Creak extends NeverendingKnightsUnit {
 //                getWeaponTwo().use(getNearestEnemy());
             }
         }
+
+        suicideCheck(400, this);
     }
 
     public void draw(Graphics g) {
@@ -120,5 +146,6 @@ public class Creak extends NeverendingKnightsUnit {
         if (unitToAttack != null) {
             g.drawLine(getCenterX(), getCenterY(), unitToAttack.getCenterX(), unitToAttack.getCenterY());
         }
+        dbgMessage(release);
     }
 }

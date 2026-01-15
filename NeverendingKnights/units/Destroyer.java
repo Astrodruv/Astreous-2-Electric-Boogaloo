@@ -1,27 +1,23 @@
 package teams.student.NeverendingKnights.units;
 
 import components.upgrade.Shield;
-import components.weapon.explosive.HeavyMissile;
+import components.weapon.energy.Laser;
+import components.weapon.utility.SpeedBoost;
 import objects.entity.unit.Frame;
 import objects.entity.unit.Model;
 import objects.entity.unit.Style;
 import teams.student.NeverendingKnights.NeverendingKnightsUnit;
 
-public class MissileLauncher extends NeverendingKnightsUnit {
-    private String stage;
-    private float spreadY;
-
-    // For best enemy, should prioritize highly clustered swarms rather than typical bestTarget
+public class Destroyer extends NeverendingKnightsUnit {
 
     public void design() {
         setFrame(Frame.MEDIUM);
         setModel(Model.ARTILLERY);
-        setStyle(Style.DAGGER);
+        setStyle(Style.ARROW);
 
-        add(HeavyMissile.class);
+        add(Laser.class);
+        add(SpeedBoost.class);
         add(Shield.class);
-
     }
-
 
 }

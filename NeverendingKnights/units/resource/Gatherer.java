@@ -2,14 +2,14 @@ package teams.student.NeverendingKnights.units.resource;
 
 
 import components.weapon.economy.Collector;
+import engine.states.Game;
 import objects.entity.unit.Frame;
 import objects.entity.unit.Model;
 import objects.entity.unit.Style;
+import objects.entity.unit.Unit;
 import objects.resource.Resource;
 import org.newdawn.slick.Color;
 import org.newdawn.slick.Graphics;
-import org.newdawn.slick.geom.Point;
-import player.Player;
 import teams.student.NeverendingKnights.NeverendingKnights;
 import teams.student.NeverendingKnights.NeverendingKnightsUnit;
 
@@ -17,9 +17,6 @@ import java.util.ArrayList;
 
 public class Gatherer extends NeverendingKnightsUnit
 {
-    private Point interceptionPoint;
-    private float time1;
-    private float time2;
     public ArrayList<Resource> assignedResources;
     private int i;
     private int timeToGainSpeed;
@@ -38,36 +35,45 @@ public class Gatherer extends NeverendingKnightsUnit
         dumpedResources = new ArrayList<>();
         if (allDumpedResources == null) allDumpedResources = new ArrayList<>();
 
-        interceptionPoint = null;
-        time1 = 0;
-        time2 = 0;
-
         i = 0;
         timeToGainSpeed = 0;
 	}
 
 	public void action() 
 	{
-        returnResources();
-        if (assignedResources != null && assignedResources.isEmpty() && isEmpty()) NeverendingKnights.resourceAssigner.assignResources(this);
-        gatherResources();
-
+        if (myAttackers.isEmpty()){
+            if (Game.getTime() % 10 == 0) {
+                calculations();
+                setState();
+                setRallyPoint();
+            }
+        }
         i++;
-        if (i % 10 == 0) NeverendingKnights.resourceAssigner.updateResources(this);
+        if (!NeverendingKnights.resourceAssigner.allResourcesFinished) {
+            returnResources();
+            if (assignedResources != null && assignedResources.isEmpty() && isEmpty()) NeverendingKnights.resourceAssigner.assignResources(this);
+            gatherResources();
+
+            if (i % 10 == 0) NeverendingKnights.resourceAssigner.updateResources(this);
+        }
+        else{
+            if (assignedResources != null && assignedResources.isEmpty() && isEmpty()) {
+                turnTo(getHomeBase());
+                turnAround();
+                move();
+            }
+            else{
+                returnResources();
+                if (assignedResources != null && assignedResources.isEmpty() && isEmpty()) NeverendingKnights.resourceAssigner.assignResources(this);
+                gatherResources();
+            }
+        }
     }
 
 	public void returnResources()
 	{
-
         if (NeverendingKnights.resourceGrabberCount > 0) {
             if (assignedResources.isEmpty()) {
-
-//            if (time1 == 0) time1 = (float) (((getSpeedX() - getHomeBase().getCurSpeed()) + Math.sqrt(Math.pow(getSpeedX() - getHomeBase().getCurSpeed(), 2) + (2 * getHomeBase().getAcceleration() * (getCenterX() - getHomeBase().getCenterX())))) / getHomeBase().getAcceleration());
-//            if (time2 == 0) time2 = (float) (((getSpeedX() - getHomeBase().getCurSpeed()) - Math.sqrt(Math.pow(getSpeedX() - getHomeBase().getCurSpeed(), 2) + (2 * getHomeBase().getAcceleration() * (getCenterX() - getHomeBase().getCenterX())))) / getHomeBase().getAcceleration());
-//            if (time2 > 0 && time2 < time1) time1 = time2;
-//            if (interceptionPoint == null) interceptionPoint = new Point((float) (getHomeBase().getCenterX() + (getSpeedX() * time1) + (0.5f * getHomeBase().getAcceleration() * Math.pow(time1, 2))), getHomeBase().getCenterY());
-
-//                if (getDistance(getNearestRealEnemy()) > getNearestRealEnemy().getMaxRange()){
                     if (timeToGainSpeed < 600 && getDistance(getHomeBase()) > 250) {
                         float distance = getDistance(getHomeBase());
                         if (getHomeBase().getSpeedX() != 0) {
@@ -88,21 +94,6 @@ public class Gatherer extends NeverendingKnightsUnit
                             if (!allDumpedResources.contains(r)) allDumpedResources.add(r);
                         }
                     }
-//                }
-//                else{
-//                    if (isInBounds()) {
-//                        turnTo(getNearestRealEnemy());
-//                        turnAround();
-//                        move();
-//                    } else {
-//                        moveTo(getHomeBase());
-//                    }
-//                }
-
-            } else {
-                interceptionPoint = null;
-                time1 = 0;
-                time2 = 0;
             }
         }
         else{
@@ -113,19 +104,31 @@ public class Gatherer extends NeverendingKnightsUnit
 
 	public void gatherResources()
 	{
-        if(hasCapacity())
-		{
+        if(hasCapacity()) {
             if (assignedResources != null && !assignedResources.isEmpty()) {
                 Resource r = assignedResources.getFirst();
-
+                Unit threat = getNearestEnemyThreat();
                 if (r != null && !dumpedResources.contains(r)) {
-                    moveTo(r);
-                    ((Collector) getWeaponOne()).use(r);
-                    if (r.isPickedUp()){
-                        assignedResources.remove(r);
-                        NeverendingKnights.resourceAssigner.assignedResources.remove(r);
+                    if (threat != null && getDistance(threat) > threat.getMaxRange() * 1.1f) {
+                        moveTo(r);
+                        ((Collector) getWeaponOne()).use(r);
+                        if (r.isPickedUp()) {
+                            assignedResources.remove(r);
+                            NeverendingKnights.resourceAssigner.assignedResources.remove(r);
+                        }
                     }
-                } else moveTo(getHomeBase());
+                    else{
+                        if (isInBounds()) {
+                            turnTo(threat);
+                            turnAround();
+                            move();
+                        }
+                        else{
+                            moveTo(getHomeBase());
+                        }
+                    }
+                }
+                else moveTo(getHomeBase());
             }
 		}
         else{
