@@ -18,9 +18,11 @@ import teams.student.TestTeam.TestTeamUnit;
 public class Creak extends TestTeamUnit {
 
     public String stage;
+    public String release;
     private Unit unitToAttack;
     private Unit resourceUnit;
     private int rand;
+    private int timer;
 
 
     public void design() {
@@ -33,9 +35,12 @@ public class Creak extends TestTeamUnit {
         add(Missile.class);
 
         stage = "Waiting";
+        release = "false";
         unitToAttack = null;
         resourceUnit = null;
         rand = (int) (Math.random() * 2);
+        timer = 0;
+        creakActive(false);
 //        rand = 0;
     }
 
@@ -70,6 +75,8 @@ public class Creak extends TestTeamUnit {
         }
         if (stage.equals("Flanking")){
 
+            timer++;
+
             getWeaponOne().use(unitToAttack);
             if(unitToAttack == null) {
                 getWeaponOne().use(resourceUnit);
@@ -87,6 +94,12 @@ public class Creak extends TestTeamUnit {
                 if (getDistance(getEnemyBase().getCenterX(), -3500) < 300){
                     stage = "Attacking";
                 }
+            }
+
+            if(timer > 300)
+            {
+                creakActive(true);
+                release = "true";
             }
         }
         if (stage.equals("Attacking")){
@@ -127,6 +140,8 @@ public class Creak extends TestTeamUnit {
 //                getWeaponTwo().use(getNearestEnemy());
             }
         }
+
+        suicideCheck(400, this);
     }
 
     public void draw(Graphics g) {
@@ -135,5 +150,6 @@ public class Creak extends TestTeamUnit {
         if (unitToAttack != null) {
             g.drawLine(getCenterX(), getCenterY(), unitToAttack.getCenterX(), unitToAttack.getCenterY());
         }
+        dbgMessage(release);
     }
 }

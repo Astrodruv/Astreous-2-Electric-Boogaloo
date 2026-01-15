@@ -23,6 +23,7 @@ import objects.resource.Resource;
 import objects.resource.ResourceManager;
 import org.newdawn.slick.Color;
 import org.newdawn.slick.Graphics;
+import teams.student.TestTeam.units.Creak;
 import teams.student.TestTeam.units.Pest;
 import teams.student.TestTeam.units.Tank;
 import teams.student.TestTeam.units.resource.Gatherer;
@@ -985,6 +986,27 @@ public abstract class TestTeamUnit extends Unit
 
         else return null;
     }
+    public Unit getLowestAttackingEnemy(int range) {
+        ArrayList<Unit> e = new ArrayList<>();
+
+        for (Unit u : getEnemiesInRadiusWithComponent(range,Missile.class)){
+            if (u.getDistance(getEnemyBase()) > 500) e.add(u);
+        }
+        for (Unit u : getEnemiesInRadiusWithComponent(range,Laser.class)){
+            if (u.getDistance(getEnemyBase()) > 500) e.add(u);
+        }
+        for (Unit u : getEnemiesInRadiusWithComponent(range,Autocannon.class)){
+            if (u.getDistance(getEnemyBase()) > 500) e.add(u);
+        }
+
+        e.sort(Comparator.comparingDouble(Unit::getPercentEffectiveHealth));
+
+        if (!e.isEmpty()) {
+            return e.getFirst();
+        }
+
+        else return null;
+    }
 
     public boolean hasAntiMissiles() {
         for (Unit l : getEnemies()) {
@@ -1035,6 +1057,18 @@ public abstract class TestTeamUnit extends Unit
 
         return realEnemies;
     }
+    public ArrayList<Unit> getSafeEnemiesInRadius(int r) {
+        ArrayList<Unit> enemies = getEnemiesInRadius(r);
+        ArrayList<Unit> safeEnemies = new ArrayList<>();
+
+        for (Unit u : enemies){
+            if (u.hasWeapon(Collector.class) || u.hasWeapon(Drillbeam.class)) {
+                safeEnemies.add(u);
+            }
+        }
+
+        return safeEnemies;
+    }
 
     public Unit getNearestEnemyThreat() {
         // found this method that lowkey reduces lag by a ton
@@ -1079,6 +1113,31 @@ public abstract class TestTeamUnit extends Unit
         }
 
         return null;
+    }
+
+    public boolean suicideCheck(float radius, Unit type)
+    {
+        if(type instanceof Pest && getRealEnemiesInRadius((int) radius).size() >= 4 & getSafeEnemiesInRadius((int) radius).size() <= 4)
+        {
+            return true;
+        }
+        if(type instanceof Creak && getRealEnemiesInRadius((int) radius).size() >= 5 && getAlliesInRadius((int) radius).size() <= 2)
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    public boolean creakActive(boolean on)
+    {
+        if(on)
+        {
+            return true;
+        }
+        else {
+            return false;
+        }
     }
 
     public TestTeam getPlayer() {

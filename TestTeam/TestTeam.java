@@ -27,13 +27,13 @@ public class TestTeam extends Player
 
     public void setup()
     {
-        setName("Test Team");
+        setName("Neverending Knights");
         setTeamImage("src/teams/student/TestTeam/teamLogo.png");
-        setTitle("Newbie Team");
+        setTitle("Bycycle");
 
         setColorPrimary(0, 255, 255);
-        setColorSecondary(0, 255, 255);
-        setColorAccent(255, 128, 128);
+        setColorSecondary(255, 215, 0);
+        setColorAccent(255, 255, 255);
 
         resourceAssigner = new ResourceAssigner(this);
 
@@ -59,6 +59,13 @@ public class TestTeam extends Player
             if (getFleetValueUnitPercentage(Gatherer.class) < 0.25f) {
                 buildUnit(Gatherer.class);
             }
+            if (getFleetValueUnitPercentage(Pest.class) < 0.25f){
+                buildUnit(Pest.class);
+            }
+//            if (getFleetValueUnitPercentage(Creak.class) < 0.1f) {
+//                buildUnit(Creak.class);
+//            }
+
         } else if (timer < 300 * 60) {
             if (getFleetValueUnitPercentage(Miner.class) < 0.15f) {
                 buildUnit(Miner.class);
@@ -66,6 +73,13 @@ public class TestTeam extends Player
             if (getFleetValueUnitPercentage(Gatherer.class) < 0.2f) {
                 buildUnit(Gatherer.class);
             }
+            if (getFleetValueUnitPercentage(Pest.class) < 0.2f){
+                buildUnit(Pest.class);
+            }
+//            if (getFleetValueUnitPercentage(Creak.class) < 0.1f) {
+//                buildUnit(Creak.class);
+//            }
+
         }
         else if (timer < 480 * 60) {
             if (getFleetValueUnitPercentage(Miner.class) < 0.1f) {
@@ -74,6 +88,12 @@ public class TestTeam extends Player
             if (getFleetValueUnitPercentage(Gatherer.class) < 0.1f) {
                 buildUnit(Gatherer.class);
             }
+            if (getFleetValueUnitPercentage(Pest.class) < 0.15f){
+                buildUnit(Pest.class);
+            }
+//            if (getFleetValueUnitPercentage(Creak.class) < 0.1f) {
+//                buildUnit(Creak.class);
+//            }
         }
         else if (timer < 700 * 60) {
             if (getFleetValueUnitPercentage(Miner.class) < 0.05f) {
@@ -92,13 +112,12 @@ public class TestTeam extends Player
         if (getFleetValueUnitPercentage(Tank.class) < 0.2f) {
             buildUnit(Tank.class);
         }
-        if (getFleetValueUnitPercentage(Sniper.class) < 0.5f){
+        if (getFleetValueUnitPercentage(Sniper.class) < 0.25f){
             buildUnit(Sniper.class);
         }
         if (getFleetValueUnitPercentage(MissileLauncher.class) < 0.15f) {
             buildUnit(MissileLauncher.class);
         }
-
 
 //
 //        if (TestTeamUnit.teamStrategy.equals("Anti-Rush")) {

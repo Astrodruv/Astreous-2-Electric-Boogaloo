@@ -17,6 +17,7 @@ public class Pest extends TestTeamUnit
     private Unit unitToAttack;
     private Unit passByUnit;
     public int rand;
+    private String safe;
 
 	public void design()
 	{	
@@ -31,12 +32,25 @@ public class Pest extends TestTeamUnit
         unitToAttack = null;
         passByUnit = null;
         rand = (int) (Math.random() * 2);
+        safe = "y";
 //        rand = 0;
 	}
 
     public void action() {
         unitToAttack = getLowestSafeEnemyWorker(getWeaponOne().getMaxRange() * 3);
         passByUnit = getLowestAttackingEnemy(getWeaponOne().getMaxRange() * 2);
+
+        if(getHomeBase().getDistance(getEnemyBase()) < 6000 || getEnemyBase().getPercentEffectiveHealth() < .5f)
+        {
+            moveTo(getEnemyBase());
+            getWeaponOne().use(getNearestEnemy());
+        }
+
+        if(stage.equals("Attacking") && suicideCheck(getWeaponOne().getMaxRange() * 2, this))
+        {
+            stage = "Running";
+            safe = "no";
+        }
 
         if (stage.equals("Waiting")){
 
@@ -53,14 +67,14 @@ public class Pest extends TestTeamUnit
             if(unitToAttack == null) {
                 getWeaponOne().use(passByUnit);
             }
-//
-            if((this.getPosition().getY() > getHomeBase().getCenterY() + 3250 && this.getPosition().getY() < getHomeBase().getCenterY() + 3750)
-                    || (this.getPosition().getY() < getHomeBase().getCenterY() - 3250 && this.getPosition().getY() > getHomeBase().getCenterY() - 3750))
-            {
-                if (getAlliesInRadius(400, Pest.class).size() > 3){
+
+//            if((this.getPosition().getY() > getHomeBase().getCenterY() + 3250 && this.getPosition().getY() < getHomeBase().getCenterY() + 3750)
+//                    || (this.getPosition().getY() < getHomeBase().getCenterY() - 3250 && this.getPosition().getY() > getHomeBase().getCenterY() - 3750))
+//            {
+                if (getAlliesInRadius(400, Pest.class).size() > 4){
                     stage = "Flanking";
                 }
-            }
+//            }
 
 
         }
@@ -114,6 +128,21 @@ public class Pest extends TestTeamUnit
                 getWeaponOne().use(getNearestEnemy());
             }
         }
+        if(stage.equals("Running"))
+        {
+            if(getPlayer().isRightPlayer())
+            {
+                moveTo(getPosition().getX() - 5000, getPosition().getY());
+            }
+            if(getPlayer().isLeftPlayer())
+            {
+                moveTo(getPosition().getX() + 5000, getPosition().getY());
+            }
+            if(!suicideCheck(getWeaponOne().getMaxRange() * 2, this))
+            {
+                stage = "Attacking";
+            }
+        }
     }
 
     public void draw(Graphics g){
@@ -122,6 +151,7 @@ public class Pest extends TestTeamUnit
         if (unitToAttack != null){
             g.drawLine(getCenterX(), getCenterY(), unitToAttack.getCenterX(), unitToAttack.getCenterY());
         }
+        dbgMessage(safe);
     }
 
 
