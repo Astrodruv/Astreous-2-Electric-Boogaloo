@@ -8,53 +8,120 @@ import objects.entity.unit.Style;
 import objects.entity.unit.Unit;
 import org.newdawn.slick.Color;
 import org.newdawn.slick.Graphics;
+import teams.student.NeverendingKnights.NeverendingKnightsUnit;
 import teams.student.TestTeam.TestTeamUnit;
 
 public class Pest extends TestTeamUnit
 {
+    private String stage;
+    private Unit unitToAttack;
+    private Unit passByUnit;
+    public int rand;
 
-    public void design()
-    {
-        setFrame(Frame.LIGHT);
-        setModel(Model.DESTROYER);
-        setStyle(Style.DAGGER);
+	public void design()
+	{	
+		setFrame(Frame.LIGHT);
+		setModel(Model.DESTROYER);
+		setStyle(Style.DAGGER);
 
-        add(Laser.class);
-        add(Shield.class);
-    }
+		add(Laser.class);
+		add(Shield.class);
 
-    public void act(){
-        currentTarget = nearestEnemyWorker;
-        attack(getWeaponOne());
-        attack(getWeaponTwo());
-        movement();
-    }
+        stage = "Waiting";
+        unitToAttack = null;
+        passByUnit = null;
+        rand = (int) (Math.random() * 2);
+//        rand = 0;
+	}
 
-    public void movement() {
-        if (currentTarget != null) {
-            Unit threat = getNearestEnemyThreat();
-            if (threat != null && getDistance(threat) > threat.getMaxRange() * 3f) {
-                moveTo(pestRallyX, pestRallyY);
+    public void action() {
+        unitToAttack = getLowestSafeEnemyWorker(getWeaponOne().getMaxRange() * 3);
+        passByUnit = getLowestAttackingEnemy(getWeaponOne().getMaxRange() * 2);
+
+        if (stage.equals("Waiting")){
+
+            if(rand == 0)
+            {
+                moveTo(getHomeBase().getCenterX(), 3500);
             }
-            else{
-                if (isInBounds()) {
-                    turnTo(getNearestEnemyThreat());
-                    turnAround();
-                    move();
+            else
+            {
+                moveTo(getHomeBase().getCenterX(), -3500);
+            }
+
+            getWeaponOne().use(unitToAttack);
+            if(unitToAttack == null) {
+                getWeaponOne().use(passByUnit);
+            }
+//
+            if((this.getPosition().getY() > getHomeBase().getCenterY() + 3250 && this.getPosition().getY() < getHomeBase().getCenterY() + 3750)
+                    || (this.getPosition().getY() < getHomeBase().getCenterY() - 3250 && this.getPosition().getY() > getHomeBase().getCenterY() - 3750))
+            {
+                if (getAlliesInRadius(400, Pest.class).size() > 3){
+                    stage = "Flanking";
                 }
-                else{
-                    moveTo(getHomeBase());
+            }
+
+
+        }
+        if (stage.equals("Flanking")){
+
+            if(rand == 0) {
+                moveTo(getEnemyBase().getCenterX(), 3500);
+                if (getDistance(getEnemyBase().getCenterX(), 3500) < 300){
+                    stage = "Attacking";
                 }
+            }
+            else {
+                moveTo(getEnemyBase().getCenterX(), -3500);
+                if (getDistance(getEnemyBase().getCenterX(), -3500) < 300){
+                    stage = "Attacking";
+                }
+            }
+
+            getWeaponOne().use(unitToAttack);
+            if(unitToAttack == null) {
+                getWeaponOne().use(passByUnit);
             }
         }
-        else{
-            moveTo(pestRallyX, pestRallyY);
+        if (stage.equals("Attacking")){
+            if (unitToAttack != null) {
+                if (getDistance(getEnemyBase()) > 750){
+                    if (getDistance(unitToAttack) > ((float) getWeaponOne().getMaxRange() / 5) * 3) {
+                        moveTo(unitToAttack);
+                    } else {
+                        turnTo(unitToAttack);
+                        turn(180);
+                        move();
+                    }
+                }
+                else{
+                    turnTo(getEnemyBase());
+                    turn(180);
+                    move();
+                }
+                getWeaponOne().use(unitToAttack);
+            }
+            else{
+                if (getDistance(getNearestEnemy()) > ((float) getWeaponOne().getMaxRange() / 5) * 4) {
+                    moveTo(getNearestEnemy());
+                } else {
+                    turnTo(getNearestEnemy());
+                    turn(180);
+                    move();
+                }
+                moveTo(getNearestEnemy());
+                getWeaponOne().use(getNearestEnemy());
+            }
         }
     }
 
     public void draw(Graphics g){
+//        dbgMessage(stage);
         g.setColor(Color.white);
-        g.drawLine(getCenterX(), getCenterY(), pestRallyX, pestRallyY);
+        if (unitToAttack != null){
+            g.drawLine(getCenterX(), getCenterY(), unitToAttack.getCenterX(), unitToAttack.getCenterY());
+        }
     }
 
 
