@@ -91,11 +91,23 @@ public class NeverendingKnights extends Player
         if (getFleetValueUnitPercentage(Tank.class) < 0.2f) {
             buildUnit(Tank.class);
         }
-        if (getFleetValueUnitPercentage(Sniper.class) < 0.5f){
+        if (getFleetValueUnitPercentage(Sniper.class) < 0.4f){
             buildUnit(Sniper.class);
         }
         if (getFleetValueUnitPercentage(MissileLauncher.class) < 0.15f) {
             buildUnit(MissileLauncher.class);
+        }
+        if (getFleetValueUnitPercentage(Healer.class) < 0.1) {
+            buildUnit(Healer.class);
+        }
+        if (getFleetValueUnit(Commander.class) < 1) {
+            buildUnit(Commander.class);
+        }
+        if (getFleetValueUnitPercentage(Stunner.class) < 0.1) {
+            buildUnit(Stunner.class);
+        }
+        if (getFleetValueUnitPercentage(MediumSniper.class) < 0.1) {
+            buildUnit(MediumSniper.class);
         }
 
 

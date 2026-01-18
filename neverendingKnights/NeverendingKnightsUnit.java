@@ -210,10 +210,12 @@ public abstract class NeverendingKnightsUnit extends Unit
                                 turnTo(currentTarget);
                                 turnAround();
                                 move();
-                            } else {
+                            }
+                            else {
                                 moveTo(mainPushRallyX, mainPushRallyY);
                             }
-                        } else {
+                        }
+                        else {
                             moveTo(mainPushRallyX, mainPushRallyY);
                         }
                     }
@@ -730,7 +732,9 @@ public abstract class NeverendingKnightsUnit extends Unit
                     }
             }
         }
-        if (bestEnemy != null && (bestEnemy.hasComponent(Collector.class) || bestEnemy.hasComponent(Drillbeam.class))) return null; // Can change to only gatherers if need be
+        if (bestEnemy != null) { // Can change to only gatherers if need be
+
+        }
         return bestEnemy;
         //health
         //weapon/damage
@@ -1003,6 +1007,47 @@ public abstract class NeverendingKnightsUnit extends Unit
         }
 
         return (int) (totalSpeed / numEnemies);
+    }
+
+    protected float getAverageUnitMaxSpeed() {
+        float totalSpeedToBeAveraged = 0;
+        ArrayList<Unit> allies = getAllies();
+        for (int i = 0; i<allies.size(); i++) {
+            if (!(allies.get(i).hasComponent(Collector.class) && !(allies.get(i).hasComponent(Drillbeam.class)))) {
+                totalSpeedToBeAveraged += allies.get(i).getMaxSpeed();
+            }
+            else {
+                allies.remove(i);
+                i--;
+            }
+        }
+        return totalSpeedToBeAveraged / allies.size();
+    }
+
+    protected boolean opponentHasLongRangeWeapons() {
+        ArrayList<Unit> enemies = getEnemies();
+        float totalDistanceToBeAveraged = 0;
+        for (int i = 0; i<enemies.size(); i++) {
+            if (!(enemies.get(i).hasComponent(Collector.class) && !(enemies.get(i).hasComponent(Drillbeam.class)))) {
+                totalDistanceToBeAveraged += enemies.get(i).getMaxRange();
+            }
+            else {
+                enemies.remove(i);
+                i--;
+            }
+        }
+        float averageEnemyDistance = totalDistanceToBeAveraged / enemies.size();
+
+        ArrayList<Unit> allies = getAllies();
+        float totalDistanceToBeAveragedAllies = 0;
+        for (int i = 0; i<allies.size(); i++) {
+            if (!(allies.get(i).hasComponent(Collector.class) && !(allies.get(i).hasComponent(Drillbeam.class)))) {
+                totalDistanceToBeAveragedAllies += allies.get(i).getMaxRange();
+            }
+        }
+        float averageEnemyDistanceAllies = totalDistanceToBeAveragedAllies / allies.size();
+
+        return averageEnemyDistance > averageEnemyDistanceAllies;
     }
 
     public Unit getLowestSafeEnemyWorker(int range) {

@@ -1,5 +1,7 @@
 package teams.student.neverendingKnights.units;
 
+import components.mod.offense.PoseidonMod;
+import components.upgrade.HeavyMunitions;
 import components.upgrade.Munitions;
 import components.upgrade.Shield;
 import components.weapon.energy.HeavyLaser;
@@ -28,8 +30,8 @@ public class Sniper extends NeverendingKnightsUnit {
 //        add(PoseidonMod.class);
 
         add(HeavyLaser.class);
-        add(Munitions.class);
-        add(Shield.class);
+        add(HeavyMunitions.class);
+//        add(Shield.class);
 //        //76.6% good
 
         stage = "Waiting";
