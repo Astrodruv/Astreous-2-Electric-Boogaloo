@@ -1,15 +1,21 @@
-package teams.student.NeverendingKnights.units;
+package teams.student.TestTeam.units;
 
+import components.mod.offense.*;
 import components.upgrade.Shield;
 import components.weapon.energy.Laser;
+import components.weapon.explosive.Missile;
+import components.weapon.kinetic.Autocannon;
+import components.weapon.utility.SpeedBoost;
 import objects.entity.unit.Frame;
 import objects.entity.unit.Model;
 import objects.entity.unit.Style;
 import objects.entity.unit.Unit;
 import org.newdawn.slick.Color;
 import org.newdawn.slick.Graphics;
+import teams.student.NeverendingKnights.NeverendingKnightsUnit;
+import teams.student.TestTeam.TestTeamUnit;
 
-public class Pest extends teams.student.NeverendingKnights.NeverendingKnightsUnit
+public class Pest extends TestTeamUnit
 {
     private String stage;
     private Unit unitToAttack;
@@ -17,14 +23,15 @@ public class Pest extends teams.student.NeverendingKnights.NeverendingKnightsUni
     public int rand;
     private String safe;
 
-    public void design()
-    {
-        setFrame(Frame.LIGHT);
-        setModel(Model.DESTROYER);
-        setStyle(Style.DAGGER);
+	public void design()
+	{	
+		setFrame(Frame.LIGHT);
+		setModel(Model.PROTOTYPE);
+		setStyle(Style.DAGGER);
 
-        add(Laser.class);
-        add(Shield.class);
+		add(Laser.class);
+        add(SpeedBoost.class);
+		add(Shield.class);
 
         stage = "Waiting";
         unitToAttack = null;
@@ -32,23 +39,25 @@ public class Pest extends teams.student.NeverendingKnights.NeverendingKnightsUni
         rand = (int) (Math.random() * 2);
         safe = "y";
 //        rand = 0;
-    }
+	}
 
     public void action() {
         unitToAttack = getLowestSafeEnemyWorker(getWeaponOne().getMaxRange() * 3);
+//        unitToAttack = getIsolatedEnemyWorker();
         passByUnit = getLowestAttackingEnemy(getWeaponOne().getMaxRange() * 2);
 
         if(getHomeBase().getDistance(getEnemyBase()) < 6000 || getEnemyBase().getPercentEffectiveHealth() < .5f)
         {
-            moveTo(getEnemyBase());
-            getWeaponOne().use(getNearestEnemy());
+          stage = "Attacking";
         }
 
-        if(stage.equals("Attacking") && suicideCheck(getWeaponOne().getMaxRange() * 2, this))
-        {
-            stage = "Running";
-            safe = "no";
-        }
+        getWeapon(SpeedBoost.class).use();
+
+//        if(stage.equals("Attacking") && suicideCheck(getWeaponOne().getMaxRange() * 2, this))
+//        {
+//            stage = "Running";
+//            safe = "no";
+//        }
 
         if (stage.equals("Waiting")){
 
@@ -69,7 +78,10 @@ public class Pest extends teams.student.NeverendingKnights.NeverendingKnightsUni
 //            if((this.getPosition().getY() > getHomeBase().getCenterY() + 3250 && this.getPosition().getY() < getHomeBase().getCenterY() + 3750)
 //                    || (this.getPosition().getY() < getHomeBase().getCenterY() - 3250 && this.getPosition().getY() > getHomeBase().getCenterY() - 3750))
 //            {
-            if (getAlliesInRadius(400, Pest.class).size() > 4){
+            if (getRealEnemiesInRadius(8000).size() >= 2) {
+
+            }
+            if (getAlliesInRadius(400, Pest.class).size() > 3){
                 stage = "Flanking";
             }
 //            }
@@ -80,13 +92,13 @@ public class Pest extends teams.student.NeverendingKnights.NeverendingKnightsUni
 
             if(rand == 0) {
                 moveTo(getEnemyBase().getCenterX(), 3500);
-                if (getDistance(getEnemyBase().getCenterX(), 3500) < 300){
+                if (getDistance(getEnemyBase().getCenterX(), 3500) < 300 || unitToAttack != null){
                     stage = "Attacking";
                 }
             }
             else {
                 moveTo(getEnemyBase().getCenterX(), -3500);
-                if (getDistance(getEnemyBase().getCenterX(), -3500) < 300){
+                if (getDistance(getEnemyBase().getCenterX(), -3500) < 300 || unitToAttack != null){
                     stage = "Attacking";
                 }
             }
@@ -115,15 +127,13 @@ public class Pest extends teams.student.NeverendingKnights.NeverendingKnightsUni
                 getWeaponOne().use(unitToAttack);
             }
             else{
-                if (getDistance(getNearestEnemy()) > ((float) getWeaponOne().getMaxRange() / 5) * 4) {
-                    moveTo(getNearestEnemy());
+                if (getDistance(getNearestEnemyWorker()) > ((float) getWeaponOne().getMaxRange() / 5) * 4) {
+                    moveTo(getNearestEnemyWorker());
                 } else {
-                    turnTo(getNearestEnemy());
+                    turnTo(getNearestEnemyWorker());
                     turn(180);
                     move();
                 }
-                moveTo(getNearestEnemy());
-                getWeaponOne().use(getNearestEnemy());
             }
         }
         if(stage.equals("Running"))
