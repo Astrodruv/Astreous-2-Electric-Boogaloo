@@ -242,6 +242,32 @@ public abstract class NeverendingKnightsUnit extends Unit
         }
         return 200;
     }
+      public Unit getIsolatedEnemyWorker(float radius) {
+
+    ArrayList<Unit> enemies = new ArrayList<>(getEnemiesInRadius(radius));
+
+    Unit best = null;
+    float bestScore = 0;
+
+    for (Unit u : enemies) {
+
+        if (!u.hasComponent(Collector.class) || !u.hasComponent(Drillbeam.class))
+            continue;
+
+        float distFromBase = u.getDistance(getEnemyBase());
+        float distFromYou = u.getDistance(getPosition());
+        float health = u.getPercentEffectiveHealth();
+
+        float score = distFromBase * 1.0f - distFromYou  * 1.5f - health * 2.0f;
+
+        if (score > bestScore) {
+            bestScore = score;
+            best = u;
+        }
+    }
+
+    return best;
+}
 
     //**********************************************************************************
     // RESOURCES ***********************************************************************
@@ -356,6 +382,27 @@ public abstract class NeverendingKnightsUnit extends Unit
         }
 
         for (Unit u : getEnemiesInRadiusWithComponent(range,Drillbeam.class)){
+            if (u.getDistance(getEnemyBase()) > 500) e.add(u);
+        }
+
+        e.sort(Comparator.comparingDouble(Unit::getPercentEffectiveHealth));
+
+        if (!e.isEmpty()) {
+            return e.getFirst();
+        }
+
+        else return null;
+    }
+      public Unit getLowestAttackingEnemy(int range) {
+        ArrayList<Unit> e = new ArrayList<>();
+
+        for (Unit u : getEnemiesInRadiusWithComponent(range,Missile.class)){
+            if (u.getDistance(getEnemyBase()) > 500) e.add(u);
+        }
+        for (Unit u : getEnemiesInRadiusWithComponent(range,Laser.class)){
+            if (u.getDistance(getEnemyBase()) > 500) e.add(u);
+        }
+        for (Unit u : getEnemiesInRadiusWithComponent(range,Autocannon.class)){
             if (u.getDistance(getEnemyBase()) > 500) e.add(u);
         }
 

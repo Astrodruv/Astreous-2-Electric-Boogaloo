@@ -1,47 +1,120 @@
-package teams.student.NeverendingKnights.units;
+package teams.student.TestTeam.units;
 
+import components.mod.offense.*;
 import components.upgrade.Shield;
 import components.weapon.energy.Laser;
+import components.weapon.explosive.Missile;
+import components.weapon.kinetic.Autocannon;
+import components.weapon.utility.SpeedBoost;
 import objects.entity.unit.Frame;
 import objects.entity.unit.Model;
 import objects.entity.unit.Style;
 import objects.entity.unit.Unit;
 import org.newdawn.slick.Color;
 import org.newdawn.slick.Graphics;
-import player.Player;
 import teams.student.NeverendingKnights.NeverendingKnightsUnit;
+import teams.student.TestTeam.TestTeamUnit;
 
-public class Pest extends NeverendingKnightsUnit
+import java.util.ArrayList;
+
+public class Pest extends TestTeamUnit
 {
     private String stage;
-    private Unit unitToAttack;
+    private static Unit unitToAttack;
+    private Unit passByUnit;
+    public int rand;
+    private String safe;
+    public boolean isAntiRush;
 
-    public void design()
-	{	
+	public void design()
+	{
+
 		setFrame(Frame.LIGHT);
-		setModel(Model.DESTROYER);
+		setModel(Model.PROTOTYPE);
 		setStyle(Style.DAGGER);
 
 		add(Laser.class);
+        add(SpeedBoost.class);
 		add(Shield.class);
+
+//        shouldBeAntiRush();
 
         stage = "Waiting";
         unitToAttack = null;
+        passByUnit = null;
+        rand = (int) (Math.random() * 2);
+        safe = "y";
+//        rand = 0;
 	}
 
     public void action() {
-        unitToAttack = getLowestSafeEnemyWorker(getWeaponOne().getMaxRange() * 5);
 
-        if (stage.equals("Waiting")){
-            moveTo(getHomeBase().getCenterX(), 3500);
-            if (getAlliesInRadius(600, Pest.class).size() > 5){
+//        unitToAttack = getLowestSafeEnemyWorker(getWeaponOne().getMaxRange() * 3);
+//        if(isAntiRush) {
+//            unitToAttack = getLowestAttackingEnemy(getWeaponOne().getMaxRange() * 2);
+//        }
+//        else {
+//            unitToAttack = getIsolatedEnemyWorker();
+//        }
+
+        unitToAttack = getIsolatedEnemyWorker(5000);
+        passByUnit = getLowestAttackingEnemy(getWeaponOne().getMaxRange() * 2);
+
+        if(getHomeBase().getDistance(getEnemyBase()) < 6000 || getEnemyBase().getPercentEffectiveHealth() < .5f) {
+          stage = "Attacking";
+        }
+
+        getWeapon(SpeedBoost.class).use();
+
+//        if(stage.equals("Attacking") && suicideCheck(getWeaponOne().getMaxRange() * 2, this))
+//        {
+//            stage = "Running";
+//            safe = "no";
+//        }
+
+
+        if (stage.equals("Waiting")) {
+
+            if(rand == 0) {
+                moveTo(getHomeBase().getCenterX(), 3500);
+            }
+            else {
+                moveTo(getHomeBase().getCenterX(), -3500);
+            }
+
+            getWeaponOne().use(unitToAttack);
+            if(unitToAttack == null) {
+                getWeaponOne().use(passByUnit);
+            }
+
+//            if (getRealEnemiesInRadius(8000).size() >= 2) {
+//                stage = "Attacking";
+//            }
+
+            if (getAlliesInRadius(400, Pest.class).size() > 3){
                 stage = "Flanking";
             }
+
+
         }
         if (stage.equals("Flanking")){
-            moveTo(getEnemyBase().getCenterX(), 3500);
-            if (getDistance(getEnemyBase().getCenterX(), 3500) < 300){
-                stage = "Attacking";
+
+            if(rand == 0) {
+                moveTo(getEnemyBase().getCenterX(), 3500);
+                if (getDistance(getEnemyBase().getCenterX(), 3500) < 300 || unitToAttack != null){
+                    stage = "Attacking";
+                }
+            }
+            else {
+                moveTo(getEnemyBase().getCenterX(), -3500);
+                if (getDistance(getEnemyBase().getCenterX(), -3500) < 300 || unitToAttack != null){
+                    stage = "Attacking";
+                }
+            }
+
+            getWeaponOne().use(unitToAttack);
+            if(unitToAttack == null) {
+                getWeaponOne().use(passByUnit);
             }
         }
         if (stage.equals("Attacking")){
@@ -63,16 +136,45 @@ public class Pest extends NeverendingKnightsUnit
                 getWeaponOne().use(unitToAttack);
             }
             else{
-                if (getDistance(getNearestEnemy()) > ((float) getWeaponOne().getMaxRange() / 5) * 4) {
-                    moveTo(getNearestEnemy());
+                if (getDistance(getNearestEnemyWorker()) > ((float) getWeaponOne().getMaxRange() / 5) * 4) {
+                    moveTo(getNearestEnemyWorker());
                 } else {
-                    turnTo(getNearestEnemy());
+                    turnTo(getNearestEnemyWorker());
                     turn(180);
                     move();
                 }
-                moveTo(getNearestEnemy());
-                getWeaponOne().use(getNearestEnemy());
             }
+        }
+        if(stage.equals("Running"))
+        {
+            if(getPlayer().isRightPlayer()) {
+                moveTo(getPosition().getX() - 5000, getPosition().getY());
+            }
+            if(getPlayer().isLeftPlayer()) {
+                moveTo(getPosition().getX() + 5000, getPosition().getY());
+            }
+            if(!suicideCheck(getWeaponOne().getMaxRange() * 2, this)) {
+                stage = "Attacking";
+            }
+        }
+    }
+
+    public void shouldBeAntiRush() {
+
+        ArrayList<Unit> pests = getPlayer().getMyUnits(Pest.class);
+        int totalAntiRushPests = 0;
+        for (Unit u: pests) {
+            if(u instanceof Pest) {
+                if(((Pest) u).isAntiRush) {
+                    totalAntiRushPests++;
+                }
+            }
+        }
+        if(totalAntiRushPests >= pests.size()/3) {
+            isAntiRush = false;
+        }
+        else {
+            isAntiRush = true;
         }
     }
 
@@ -82,6 +184,7 @@ public class Pest extends NeverendingKnightsUnit
         if (unitToAttack != null){
             g.drawLine(getCenterX(), getCenterY(), unitToAttack.getCenterX(), unitToAttack.getCenterY());
         }
+        dbgMessage(safe);
     }
 
 
