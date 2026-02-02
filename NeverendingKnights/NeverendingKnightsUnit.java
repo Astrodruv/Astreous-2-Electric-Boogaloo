@@ -24,6 +24,7 @@ import objects.resource.ResourceManager;
 import org.newdawn.slick.Color;
 import org.newdawn.slick.Graphics;
 import teams.student.NeverendingKnights.units.Creak;
+import teams.student.NeverendingKnights.units.Destroyer;
 import teams.student.NeverendingKnights.units.Pest;
 import teams.student.NeverendingKnights.units.Tank;
 import teams.student.NeverendingKnights.units.resource.Gatherer;
@@ -37,6 +38,7 @@ public abstract class NeverendingKnightsUnit extends Unit
 
     // Calculations
     public static ArrayList<Unit> enemyThreats = new ArrayList<>();
+    public static ArrayList<Unit> enemyRush = new ArrayList<>(); // Lights, non-weapons close to us, not necessarily trying to bum rush our gatherers but our fleet in general (Ivan's team)
     public static ArrayList<Unit> enemyWorkers = new ArrayList<>();
     public static ArrayList<Unit> enemyMissiles = new ArrayList<>();
     public static ArrayList<Unit> myAttackers = new ArrayList<>();
@@ -44,6 +46,7 @@ public abstract class NeverendingKnightsUnit extends Unit
     public static ArrayList<Unit> myWorkersInDanger = new ArrayList<>();
 
     public static ArrayList<Unit> tanks = new ArrayList<>();
+    public static ArrayList<Unit> antiMissileTanks = new ArrayList<>();
 
     public static String enemyAttackScheme = ""; // Can focus on healing later
     public static String enemyWorkerStrength = "";
@@ -72,15 +75,18 @@ public abstract class NeverendingKnightsUnit extends Unit
     public float mainPushRallyY = 0;
     public static float pestRallyX = 0;
     public static float pestRallyY = 0;
+    public static float avgMainPushX = 0;
+    public static float avgMainPushY = 0;
 
     public static int relativeEnemyThreatStrength = 0;
     public static int relativeAttackerStrength = 0;
 
     public static float furthestTankX = 0;
+    public static float furthestTankY = 0;
 
     public static float mainPushAvgDist = 0;
 
-    protected Unit currentTarget;
+    protected Unit currentTarget = null;
 
 
     public void action() {
@@ -107,6 +113,7 @@ public abstract class NeverendingKnightsUnit extends Unit
         calculateRelativePushStrength();
         calculateFurthestTankX();
         calculateAntiMissiles();
+        calculateAvgMainPushXY();
     }
 
     public void setState(){
@@ -135,7 +142,7 @@ public abstract class NeverendingKnightsUnit extends Unit
         }
 
         if (attackState.equals("Attack")){
-            if (mainPushState.equals("Rally") || mainPushState.equals("Retreat") || mainPushState.equals("Heavy Retreat")){
+            if (mainPushState.equals("Retreat") || mainPushState.equals("Heavy Retreat")){
                 if (getPlayer().isLeftPlayer()) mainPushRallyX = getHomeBase().getCenterX() + getHomeBase().getDistance(getEnemyBase()) / 2;
                 else if (getPlayer().isRightPlayer()) mainPushRallyX = getHomeBase().getCenterX() - getHomeBase().getDistance(getEnemyBase()) / 2;
                 mainPushRallyY = getHomeBase().getCenterY();
@@ -148,6 +155,8 @@ public abstract class NeverendingKnightsUnit extends Unit
                 else{
                     mainPushRallyX = nearestEnemyThreat.getCenterX();
                     mainPushRallyY = nearestEnemyThreat.getCenterY();
+//                    mainPushRallyX = getEnemyBase().getCenterX();
+//                    mainPushRallyY = getEnemyBase().getCenterY();
                 }
             }
         }
@@ -156,10 +165,14 @@ public abstract class NeverendingKnightsUnit extends Unit
             if (getBiggestThreatInRadius(getMaxRange() * 2) != null) {
                 mainPushRallyX = getBiggestThreatInRadius(getMaxRange() * 2).getCenterX();
                 mainPushRallyY = getBiggestThreatInRadius(getMaxRange() * 2).getCenterY();
+//                mainPushRallyX = nearestEnemyThreat.getCenterX();
+//                mainPushRallyY = nearestEnemyThreat.getCenterY();
             }
             else{
-                mainPushRallyX = nearestEnemyThreat.getCenterX();
-                mainPushRallyY = nearestEnemyThreat.getCenterY();
+                    mainPushRallyX = nearestEnemyThreat.getCenterX();
+                    mainPushRallyY = nearestEnemyThreat.getCenterY();
+//                mainPushRallyX = getEnemyBase().getCenterX();
+//                mainPushRallyY = getEnemyBase().getCenterY();
             }
         }
 
@@ -175,8 +188,7 @@ public abstract class NeverendingKnightsUnit extends Unit
     }
 
     public void act(){
-//        currentTarget = nearestEnemyThreat;
-        currentTarget = getBiggestThreatInRadius(getMaxRange());
+        currentTarget = getBiggestThreatInRadius(getMaxRange() * 3);
 
         attack(getWeaponOne());
         attack(getWeaponTwo());
@@ -184,15 +196,46 @@ public abstract class NeverendingKnightsUnit extends Unit
     }
 
     public void attack(Weapon w) {
-        if(currentTarget != null && w != null){
-            w.use(currentTarget);
+        if (w != null){
+            if (currentTarget != null) w.use(currentTarget);
+            else w.use(getNearestEnemy());
         }
     }
 
     public void movement() {
-        if (getDistance(getNearestAlly()) > 50) {
-            if (!tanks.isEmpty()) {
-                if (((getPlayer().isLeftPlayer() && getX() < furthestTankX) || (getPlayer().isRightPlayer() && getX() > furthestTankX)) && !myMainPushStrength.equals("Very High") && !(this instanceof Tank)) {
+        boolean behindTanks = (getPlayer().isLeftPlayer() && getX() < (furthestTankX - (getMaxRange() * 0.65f))) || (getPlayer().isRightPlayer() && getX() > (furthestTankX + (getMaxRange() * 0.65f)));
+        if (!tanks.isEmpty()){
+            if ((!antiMissileTanks.isEmpty() && antiMissileTanks.contains(this)) || (antiMissileTanks.isEmpty() && tanks.contains(this))){
+                if (currentTarget != null) {
+                    if (getDistance(currentTarget) < getWeaponOne().getMaxRange()) {
+                        turnTo(currentTarget);
+                        turnAround();
+                        move();
+                    } else {
+                        if (getDistance(avgMainPushX, avgMainPushY) > 750 && avgMainPushY != 0 && avgMainPushX != 0) {
+                            moveTo(avgMainPushX, avgMainPushY);
+                        }
+                        else {
+                            moveTo(mainPushRallyX, mainPushRallyY);
+                        }
+                    }
+                } else {
+                    if (getDistance(getNearestEnemy()) < getWeaponOne().getMaxRange()) {
+                        turnTo(getNearestEnemy());
+                        turnAround();
+                        move();
+                    } else {
+                        if (getDistance(avgMainPushX, avgMainPushY) > 750 && avgMainPushY != 0 && avgMainPushX != 0) {
+                            moveTo(avgMainPushX, avgMainPushY);
+                        }
+                        else {
+                            moveTo(mainPushRallyX, mainPushRallyY);
+                        }
+                    }
+                }
+            }
+            else{
+                if (myMainPushStrength.equals("Very High") && getDistance(getEnemyBase()) < 1000){
                     if (currentTarget != null) {
                         if (getDistance(currentTarget) < getWeaponOne().getMaxRange()) {
                             turnTo(currentTarget);
@@ -202,10 +245,17 @@ public abstract class NeverendingKnightsUnit extends Unit
                             moveTo(mainPushRallyX, mainPushRallyY);
                         }
                     } else {
-                        moveTo(mainPushRallyX, mainPushRallyY);
+                        if (getDistance(getNearestEnemy()) < getWeaponOne().getMaxRange()) {
+                            turnTo(getNearestEnemy());
+                            turnAround();
+                            move();
+                        } else {
+                            moveTo(mainPushRallyX, mainPushRallyY);
+                        }
                     }
-                } else {
-                    if (this instanceof Tank || (myMainPushStrength.equals("Very High") && getDistance(getEnemyBase()) < 1000)){
+                }
+                else {
+                    if (behindTanks && getDistance(x,furthestTankY) < 1500) {
                         if (currentTarget != null) {
                             if (getDistance(currentTarget) < getWeaponOne().getMaxRange()) {
                                 turnTo(currentTarget);
@@ -215,54 +265,81 @@ public abstract class NeverendingKnightsUnit extends Unit
                                 moveTo(mainPushRallyX, mainPushRallyY);
                             }
                         } else {
-                            moveTo(mainPushRallyX, mainPushRallyY);
+                            if (getDistance(getNearestEnemy()) < getWeaponOne().getMaxRange()) {
+                                turnTo(getNearestEnemy());
+                                turnAround();
+                                move();
+                            } else {
+                                moveTo(mainPushRallyX, mainPushRallyY);
+                            }
                         }
-                    }
-                    else {
-                        turnTo(getNearestAlly(Tank.class));
-                        move();
+                    } else {
+                        if (getDistance(x,furthestTankY) > 1500){
+                            moveTo(x,furthestTankY);
+                        }
+                        else {
+                            moveTo(getHomeBase());
+                            move();
+                        }
                     }
                 }
             }
-            else{
-                if (currentTarget != null) {
-                    if (getDistance(currentTarget) < getWeaponOne().getMaxRange()) {
-                        turnTo(currentTarget);
-                        turnAround();
-                        move();
-                    } else {
-                        moveTo(mainPushRallyX, mainPushRallyY);
-                    }
+        }
+        else{
+            if (currentTarget != null) {
+                if (getDistance(currentTarget) < getWeaponOne().getMaxRange()) {
+                    turnTo(currentTarget);
+                    turnAround();
+                    move();
+                } else {
+                    moveTo(mainPushRallyX, mainPushRallyY);
+                }
+            } else {
+                if (getDistance(getNearestEnemy()) < getWeaponOne().getMaxRange()) {
+                    turnTo(getNearestEnemy());
+                    turnAround();
+                    move();
                 } else {
                     moveTo(mainPushRallyX, mainPushRallyY);
                 }
             }
         }
-        else{
-            turnTo(getNearestAlly());
-            turnAround();
-            move();
-        }
     }
 
     public void calculateFurthestTankX(){
         tanks.clear();
+        antiMissileTanks.clear();
 
         for (Unit u : myAttackers){
             if (u instanceof Tank) tanks.add(u);
+            if (u instanceof Tank && u.hasWeapon(AntiMissileSystem.class)) antiMissileTanks.add(u);
         }
 
         tanks.sort((w1, w2) -> Float.compare(w1.getDistance(getEnemyBase()), w2.getDistance(getEnemyBase())));
+        antiMissileTanks.sort((w1, w2) -> Float.compare(w1.getDistance(getEnemyBase()), w2.getDistance(getEnemyBase())));
 
-        if (!tanks.isEmpty()) furthestTankX = tanks.getFirst().getCenterX();
+        if (!tanks.isEmpty()){
+            if (antiMissileTanks.isEmpty()) {
+                furthestTankX = tanks.getFirst().getCenterX();
+                furthestTankY = tanks.getFirst().getCenterY();
+            }
+            else{
+                furthestTankX = antiMissileTanks.getFirst().getCenterX();
+                furthestTankY = antiMissileTanks.getFirst().getCenterY();
+            }
+        }
     }
 
     // Calculations
     public void calculateEnemyAttackType(){
         enemyThreats.clear();
+        enemyRush.clear();
 
         for (Unit u : getEnemies()){
             if (!u.hasComponent(Drillbeam.class) && !u.hasComponent(Collector.class)){
+                if ((u.getFrame() == Frame.LIGHT && !(u.hasWeapon(Collector.class)) && !(u.hasWeapon(Drillbeam.class)))){
+                    enemyRush.add(u);
+                }
                 enemyThreats.add(u);
             }
         }
@@ -295,6 +372,34 @@ public abstract class NeverendingKnightsUnit extends Unit
             enemyAttackScheme = "Medium-Heavy Tank";
         }
     }
+
+    public Unit getIsolatedEnemyWorker(float radius) {
+
+        ArrayList<Unit> enemies = new ArrayList<>(getEnemiesInRadius(radius));
+
+        Unit best = null;
+        float bestScore = 0;
+
+        for (Unit u : enemies) {
+
+            if (!u.hasComponent(Collector.class) || !u.hasComponent(Drillbeam.class))
+                continue;
+
+            float distFromBase = u.getDistance(getEnemyBase());
+            float distFromYou = u.getDistance(getPosition());
+            float health = u.getPercentEffectiveHealth();
+
+            float score = distFromBase * 1.0f - distFromYou  * 1.5f - health * 2.0f;
+
+            if (score > bestScore) {
+                bestScore = score;
+                best = u;
+            }
+        }
+
+        return best;
+    }
+
 
     public void calculateWorkersInDanger(){
         myWorkersInDanger.clear();
@@ -388,10 +493,10 @@ public abstract class NeverendingKnightsUnit extends Unit
                 }
             }
 
-            if (attackState.equals("Kill")){
-                if (!getEnemyBase().getAlliesInRadius(1000).isEmpty()) nearestEnemyThreat = getEnemyBase().getNearestAlly();
-                else nearestEnemyThreat = getEnemyBase();
-            }
+//            if (attackState.equals("Kill")){
+//                if (!getEnemyBase().getAlliesInRadius(1000).isEmpty()) nearestEnemyThreat = getEnemyBase().getNearestAlly();
+//                else nearestEnemyThreat = getEnemyBase();
+//            }
 
             nearestEnemyThreatNumDist = nearestEnemyThreat.getDistance(getHomeBase());
         }
@@ -410,17 +515,6 @@ public abstract class NeverendingKnightsUnit extends Unit
         } else {
             nearestEnemyThreatDist = "Extremely Close";
         }
-//        }
-//        else{
-//            if (nearestEnemyThreatNumDist > 1500) {
-//                nearestEnemyThreatDist = "Small Close";
-//            } else if (nearestEnemyThreatNumDist > 750) {
-//                nearestEnemyThreatDist = "Small Very Close";
-//            } else {
-//                nearestEnemyThreatDist = "Small Extremely Close";
-//            }
-//        }
-
     }
 
     public void calculateNearestEnemyWorker(){
@@ -430,7 +524,8 @@ public abstract class NeverendingKnightsUnit extends Unit
     public void calculateMyAttackers(){
         myAttackers.clear();
         for (Unit u : getAlliesExcludeBaseShip()){
-            if (!u.hasComponent(Drillbeam.class) && !u.hasComponent(Collector.class) && !(u instanceof Pest)){
+            if (!u.hasComponent(Drillbeam.class) && !u.hasComponent(Collector.class) && !(u instanceof Pest) && !(u instanceof Destroyer)){
+                // Should we apply the rush aspect here as well?
                 myAttackers.add(u);
             }
         }
@@ -501,49 +596,64 @@ public abstract class NeverendingKnightsUnit extends Unit
         else {
             myMainPushStrength = "Moderate";
         }
-//        if (myAttackers.size() > enemyThreats.size() * 1.5){
-//            myMainPushStrength = "Very High";
-//        }
-//        else if (myAttackers.size() > enemyThreats.size() * 1.15f){
-//            myMainPushStrength = "High";
-//        }
-//        else if (myAttackers.size() > enemyThreats.size()){
-//            myMainPushStrength = "Moderately High";
-//        }
-//        else if (myAttackers.size() * 2 < enemyThreats.size()){
-//            myMainPushStrength = "Very Low";
-//        }
-//        else if (myAttackers.size() * 1.5f < enemyThreats.size()){
-//            myMainPushStrength = "Low";
-//        }
-//        else if (myAttackers.size() < enemyThreats.size()){
-//            myMainPushStrength = "Moderately Low";
-//        }
-//        else {
-//            myMainPushStrength = "Moderate";
-//        }
+    }
+
+
+    public void calculateAvgMainPushXY(){
+        float sumX = 0;
+        float sumY = 0;
+        float count = 0;
+
+        for (Unit u : myAttackers){
+            if (u.getDistance(getEnemyBase()) < getEnemyBase().getDistance(0,0)){
+                sumX += u.getX();
+                sumY += u.getY();
+                count++;
+            }
+        }
+
+        sumX = sumX / count;
+        sumY = sumY / count;
+
+        avgMainPushX = sumX;
+        avgMainPushY = sumY;
     }
 
     public void calculateMainPushDensity(){
-        if (myAttackers.contains(this) && getDistance(getEnemyBase()) < getEnemyBase().getDistance(0,0)){
-            int alliesInRadius = getAlliesInRadius(1250).size(); // can make excluding pests, etc
-            if (alliesInRadius == myAttackers.size()){
-                myMainPushDensity = "Perfect";
-            }
-            else if (alliesInRadius < myAttackers.size() * 0.2f){
-                myMainPushDensity = "Terrible";
-            }
-            else if (alliesInRadius < myAttackers.size() * 0.35f){
-                myMainPushDensity = "Bad";
-            }
-            else if (alliesInRadius < myAttackers.size() * 0.6f){
-                myMainPushDensity = "Moderate";
-            }
-            else if (alliesInRadius < myAttackers.size() * 0.85f){
-                myMainPushDensity = "Decent";
-            }
+        // ALREADY RECALCULATED - just put this here to explain how I did in case in the future in needs to change again
 
+        // Redo this method - take the average x and y values of all attacking units on the attacking side of the map (past 0,0)
+        // Then, get the number of attacking units with a distance of 1000 or less towards that average
+        // If that value is less than 0.5f of all attacking units on the attacking side, retreat
+        // Assign strings based on this
+        // Basically compare the close-to-average units with only the units actually on the attacking side of the map...
+        // Not all attacking units in general
 
+        ArrayList<Unit> mainPushAttackers = new ArrayList<>();
+        float count = 0;
+
+        for (Unit u : myAttackers){
+            if (u.getDistance(getEnemyBase()) < getEnemyBase().getDistance(0,0)){
+                mainPushAttackers.add(u);
+            }
+        }
+
+        for (Unit u : mainPushAttackers){
+            if (u.getDistance(avgMainPushX, avgMainPushY) < 750){
+                count++;
+            }
+        }
+
+        if (count == mainPushAttackers.size()) {
+            myMainPushDensity = "Perfect";
+        } else if (count < mainPushAttackers.size() * 0.1f) {
+            myMainPushDensity = "Terrible";
+        } else if (count < mainPushAttackers.size() * 0.25f) {
+            myMainPushDensity = "Bad";
+        } else if (count < mainPushAttackers.size() * 0.55f) {
+            myMainPushDensity = "Moderate";
+        } else if (count < mainPushAttackers.size() * 0.7f) {
+            myMainPushDensity = "Decent";
         }
     }
 
@@ -618,7 +728,7 @@ public abstract class NeverendingKnightsUnit extends Unit
         switch (myMainPushDensity) {
             case "Perfect" -> mainPushState = "Perfect";
             case "Decent" -> mainPushState = "Decent";
-            case "Moderate" -> mainPushState = "Rally";
+            case "Moderate" -> mainPushState = "Moderate";
             case "Bad" -> mainPushState = "Retreat";
             case "Terrible" -> mainPushState = "Heavy Retreat";
 
@@ -653,7 +763,8 @@ public abstract class NeverendingKnightsUnit extends Unit
             }
         }
         if (teamAlert.equals("Very Low") && !myMainPushStrength.equals("Very High") && !myMainPushStrength.equals("High")){ // Last part is a gamble ig
-            attackState = "Growth";
+            if (getAllies().size() > 75) attackState = "Attack";
+            else attackState = "Growth";
         }
     }
 
@@ -662,6 +773,8 @@ public abstract class NeverendingKnightsUnit extends Unit
         g.drawLine(getCenterX(), getCenterY(), mainPushRallyX, mainPushRallyY);
         g.setColor(Color.green);
         if (currentTarget != null) g.drawLine(getCenterX(), getCenterY(), currentTarget.getCenterX(), currentTarget.getCenterY());
+        g.setColor(new Color(255,0,255));
+        g.drawLine(getCenterX(), getCenterY(), avgMainPushX, avgMainPushY);
     }
 
     //**********************************************************************************
@@ -674,156 +787,148 @@ public abstract class NeverendingKnightsUnit extends Unit
         if (!enemies.isEmpty()) {
             int bestEnemyScore = 0;
             for (Unit enemy : enemies) {
-                int totalPoints = 10000;
-                totalPoints -= healthScore(enemy);
-                totalPoints -= damageScore(enemy);
-                totalPoints -= speedScore(enemy);
-                totalPoints -= typeShipScore(enemy);
-                totalPoints -= statusAndRangeScore(enemy);
-                totalPoints -= distanceScore(enemy);
+                int totalPoints = 0;
+                totalPoints += healthScore(enemy);
+                totalPoints += damageScore(enemy);
+                totalPoints += speedScore(enemy);
+                totalPoints += typeShipScore(enemy);
+                totalPoints += statusAndRangeScore(enemy);
+                totalPoints += distanceScore(enemy);
                 if (bestEnemy == null) {
                     bestEnemyScore = totalPoints;
                     bestEnemy = enemy;
                 } else {
-                    if (bestEnemyScore > totalPoints) {
+                    if (bestEnemyScore < totalPoints) {
                         bestEnemyScore = totalPoints;
                         bestEnemy = enemy;
                     }
                 }
             }
         }
-        if (bestEnemy != null && (bestEnemy.hasComponent(Collector.class) || bestEnemy.hasComponent(Drillbeam.class))) return null; // Can change to only gatherers if need be
-        return bestEnemy;
-        //health
-        //weapon/damage
-        //speed
-        //type
-        //range
-
-        //if they have a status, kill first
+//        if (bestEnemy != null && (bestEnemy.hasComponent(Collector.class))) return null;
+        if (bestEnemy != null) return bestEnemy;
+        return null;
     }
 
     protected int distanceScore(Unit u) {
-        if (getDistance(u) < getMaxRange()/3) {
-            return 6000;
+        // Should be the most important method (health is nearly as big)
+        if (getDistance(u) < (float) getMaxRange() / 3) {
+            return 500;
         }
-        else if (getDistance(u) < getMaxRange()*2/3) {
-            return 4000;
+        else if (getDistance(u) < (float) (getMaxRange() * 2) / 3) {
+            return 300;
         }
         else if (getDistance(u) < getMaxRange()) {
-            return 2500;
+            return 200;
         }
         else {
-            return 1000;
+            return 150;
         }
     }
 
     protected int statusAndRangeScore(Unit u) {
-        if (u.hasComponent(CommandRelay.class)) {
-            return 4000;
+        if (u.hasComponent(CommandRelay.class)) { // Inherently increases their DPS, so value more
+            return 150;
         }
         else if (u.hasComponent(Pullbeam.class)) {
-            return 150;
+            return 75;
         }
         else if (u.hasComponent(SpeedBoost.class)) {
+            return 75;
+        }
+        else if (u.hasComponent(ElectromagneticPulse.class)) { // Inherently reduces our DPS, so value more
             return 150;
         }
-        else if (u.hasComponent(ElectromagneticPulse.class)) {
-            return 450;
+        else if (u.hasComponent(GravitationalRift.class)) { // Inherently reduces our DPS, so value more
+            return 150;
         }
-        else if (u.hasComponent(GravitationalRift.class)) {
-            return 500;
+        else if (u.hasComponent(HeavyRepairBeam.class)) { // Inherently increases their DPS, so value more
+            return 175;
         }
-        else if (u.hasComponent(HeavyRepairBeam.class)) {
-            return 550;
+        else if (u.hasWeapon(RepairBeam.class)) { // Inherently increases their DPS, so value more
+            return 150;
         }
-        if (u.hasComponent(Collector.class)) {
-            return -10000;
+        if (u.hasWeapon(Collector.class)) { // We need to be able to attack wandering gatherers that are in our way if there isn't anything else
+            return 50;
         }
-        else if (u.getWeaponOne() instanceof RepairBeam && u.getWeaponTwo() instanceof RepairBeam) {
-            return 2300;
-        }
-        else if (u.getWeaponOne() instanceof RepairBeam || u.getWeaponTwo() instanceof RepairBeam) {
-            return 1000;
+        if (u.hasComponent(Drillbeam.class)) { // lol
+            return 75;
         }
         return 0;
     }
 
     protected int typeShipScore(Unit u) {
+        // This shouldn't really matter much, but I'll keep it just in case
         if (u.getModel().equals(Model.STRIKER)) {
-            return 2500;
+            return 20;
         }
         else if (u.getModel().equals(Model.ARTILLERY)) {
-            return 1900;
+            return 15;
         }
         else if (u.getModel().equals(Model.BASTION)) {
-            return 1700;
+            return 15;
         }
         else if (u.getModel().equals(Model.DESTROYER)) {
-            return 1500;
+            return 20;
         }
         else if (u.getModel().equals(Model.TRANSPORT)) {
-            return 1100;
+            return 5;
         }
-        return 1000;
+        return 15;
     }
 
     protected int speedScore(Unit u) {
-        if (u.getFrame().getMass()  <= 12) {
-            return 3000;
+        // This also shouldn't matter too much, chances are if they are light they don't do much DPS and we can dispatch of them easily anyways
+        if (u.getFrame().equals(Frame.LIGHT)) {
+            return 25;
         }
-        else if (u.getFrame().getMass() <= 25) {
-            return 2700;
+        else if (u.getFrame().equals(Frame.MEDIUM)) {
+            return 50;
         }
-        else if (u.getFrame().getMass() <= 35) {
-            return 2200;
+        else if (u.getFrame().equals(Frame.HEAVY)) {
+            return 75;
         }
-        else if (u.getFrame().getMass() <= 45) {
-            return 1900;
+        else if (u.getFrame().equals(Frame.ASSAULT)) {
+            return 100;
         }
-        return 1500;
+        return 20;
     }
 
     protected int damageScore(Unit u) {
-        if (u.getWeaponOne() instanceof HeavyMissile || u.getWeaponTwo() instanceof HeavyMissile ) {
-            return 2000;
+        // Simplified this a lot, it shouldn't really matter what type the weapon is other than if it is heavy
+        if (u.hasWeapon(HeavyMissile.class)) {
+            return 300;
         }
-        else if (u.getWeaponOne() instanceof Missile && u.getWeaponTwo() instanceof Missile) {
-            return 1900;
+        else if (u.hasWeapon(Missile.class)) {
+            return 200;
         }
-        else if (u.getWeaponOne() instanceof HeavyLaser || u.getWeaponTwo() instanceof HeavyLaser) {
-            return 1800;
+        else if (u.hasWeapon(HeavyLaser.class)) {
+            return 300;
         }
-        else if (u.getWeaponOne() instanceof Laser && u.getWeaponTwo() instanceof Laser) {
-            return 1700;
+        else if (u.hasWeapon(Laser.class)) {
+            return 200;
         }
-        else if (u.getWeaponOne() instanceof Missile || u.getWeaponTwo() instanceof Missile) {
-            return 1500;
+        else if (u.hasWeapon(HeavyAutocannon.class)) {
+            return 300;
         }
-        else if (u.getWeaponOne() instanceof Laser || u.getWeaponTwo() instanceof Laser) {
-            return 1000;
-        }
-        else if (u.getWeaponOne() instanceof HeavyAutocannon || u.getWeaponTwo() instanceof HeavyAutocannon) {
-            return 800;
-        }
-        else if (u.getWeaponOne() instanceof Autocannon && u.getWeaponTwo() instanceof Autocannon) {
-            return 250;
+        else if (u.hasWeapon(Autocannon.class)) {
+            return 200;
         }
         return 5;
     }
 
     protected int healthScore(Unit u) {
-        //gets a score to deduct based on health of the enemy
+        // Should be the most important method because more units dead = less enemy DPS
         if (u.getPercentEffectiveHealth() < 0.25) {
-            return 2500;
+            return 550;
         }
         else if (u.getPercentEffectiveHealth() < 0.5) {
-            return 1500;
+            return 400;
         }
-        else if (u.getPercentEffectiveHealth() < 0.7) {
-            return 1000;
+        else if (u.getPercentEffectiveHealth() < 0.75) {
+            return 250;
         }
-        return 200;
+        return 100;
     }
 
     //**********************************************************************************
@@ -939,7 +1044,7 @@ public abstract class NeverendingKnightsUnit extends Unit
 
         if (nodeChain != null) {
             for (Node n : nodeChain) {
-                if (n.isAlive() && n.isInBounds() && isNodeSafe(n)){ // && getDistance(n) < getNearestEnemyThreat().getDistance(n)
+                if (n.isAlive() && n.isInBounds()){ // && isNodeSafe(n) // && getDistance(n) < getNearestEnemyThreat().getDistance(n)
                     newNodeChain.add(n);
                 }
             }
@@ -971,14 +1076,15 @@ public abstract class NeverendingKnightsUnit extends Unit
         ArrayList<Unit> e = new ArrayList<>();
 
         for (Unit u : getEnemiesInRadiusWithComponent(range,Collector.class)){
-            if (u.getDistance(getEnemyBase()) > 500) e.add(u);
+            if (u.getDistance(getEnemyBase()) > 500 && u.getDistance(getNearestEnemyThreat()) > 500) e.add(u);
         }
 
         for (Unit u : getEnemiesInRadiusWithComponent(range,Drillbeam.class)){
-            if (u.getDistance(getEnemyBase()) > 500) e.add(u);
+            if (u.getDistance(getEnemyBase()) > 500 && u.getDistance(getNearestEnemyThreat()) > 500) e.add(u);
         }
 
-        e.sort(Comparator.comparingDouble(Unit::getPercentEffectiveHealth));
+//        e.sort((e1, e2) -> Float.compare(e1.getDistance(this), e2.getDistance(this)));
+        e.sort((e1, e2) -> Float.compare(e1.getPercentEffectiveHealth(), e2.getPercentEffectiveHealth()));
 
         if (!e.isEmpty()) {
             return e.getFirst();
@@ -986,6 +1092,8 @@ public abstract class NeverendingKnightsUnit extends Unit
 
         else return null;
     }
+
+
     public Unit getLowestAttackingEnemy(int range) {
         ArrayList<Unit> e = new ArrayList<>();
 
@@ -1077,7 +1185,6 @@ public abstract class NeverendingKnightsUnit extends Unit
         Unit nearest = null;
         float bestDist = Float.MAX_VALUE;
         for (Unit u : getEnemies()) {
-            if (u.hasComponent(Collector.class) || u.hasComponent(Drillbeam.class)) continue;
             float d = getDistance(u);
             if (d < bestDist) {
                 bestDist = d;
@@ -1089,29 +1196,45 @@ public abstract class NeverendingKnightsUnit extends Unit
 
 
     public Unit getNearestEnemyWorker() {
-        ArrayList<Unit> enemies = new ArrayList<>(getEnemies());
-        enemies.sort((e1, e2) -> Float.compare(e1.getDistance(getHomeBase()), e2.getDistance(getHomeBase())));
-
-        for (Unit u : enemies) {
-            if (u.hasComponent(Collector.class) || u.hasComponent(Drillbeam.class)){
-                return u;
+        Unit nearest = null;
+        float bestDist = Float.MAX_VALUE;
+        for (Unit u : enemyWorkers) {
+            float d = getDistance(u);
+            if (d < bestDist) {
+                bestDist = d;
+                nearest = u;
             }
         }
+        return nearest;
+    }
 
-        return null;
-
+    public Unit getNearestSafeEnemyWorker() {
+        Unit nearest = null;
+        float bestDist = Float.MAX_VALUE;
+        for (Unit u : enemyWorkers) {
+            if (u.getDistance(u.getHomeBase()) < 1000) continue;
+            float d = getDistance(u);
+            if (d < bestDist) {
+                bestDist = d;
+                nearest = u;
+            }
+        }
+        return nearest;
     }
 
     public Unit getNearestAllyAttacker(){
-        ArrayList<Unit> allies = new ArrayList<>(getAllies());
-        allies.sort((a1, a2) -> Float.compare(a1.getDistance(this), a2.getDistance(this)));
+        ArrayList<Unit> allies = new ArrayList<>();
 
-        for (Unit u : allies) {
-            if (!u.hasComponent(Collector.class) && !u.hasComponent(Drillbeam.class)){
-                return u;
+        for (Unit u : getAllies()) {
+            if (!u.hasComponent(Collector.class) && !u.hasComponent(Drillbeam.class)
+                && !(u instanceof Pest) && !(u instanceof Destroyer) && !u.hasWeapon(RepairBeam.class)){
+                allies.add(u);
             }
         }
 
+        allies.sort((a1, a2) -> Float.compare(getDistance(a1), getDistance(a2)));
+
+        if (!allies.isEmpty()) return allies.getFirst();
         return null;
     }
 
@@ -1129,6 +1252,20 @@ public abstract class NeverendingKnightsUnit extends Unit
         return false;
     }
 
+    public Unit getClosestEnemyRushUnit(){
+        Unit nearest = null;
+        float bestDist = Float.MAX_VALUE;
+        for (Unit u : enemyRush) {
+            if ((getPlayer().isLeftPlayer() && u.getX() > -500) || (getPlayer().isRightPlayer() && u.getX() < 500)) continue;
+            float d = getDistance(u);
+            if (d < bestDist) {
+                bestDist = d;
+                nearest = u;
+            }
+        }
+        return nearest;
+    }
+
     public boolean creakActive(boolean on)
     {
         if(on)
@@ -1138,6 +1275,75 @@ public abstract class NeverendingKnightsUnit extends Unit
         else {
             return false;
         }
+    }
+
+    public Unit getNearestRaiderUnit(){
+        ArrayList<Unit> enemies = getEnemies();
+        ArrayList<Unit> e = new ArrayList<>();
+
+        for (Unit u : enemies) {
+            if ((u.getDistance(getHomeBase()) < 1500) || (u.getFrame() == Frame.LIGHT && !(u.hasWeapon(Collector.class)) && !(u.hasWeapon(Drillbeam.class)))){
+                e.add(u);
+                if (u.getDistance(getHomeBase()) < u.getMaxRange()) return u;
+            }
+        }
+
+        e.sort((a1, a2) -> Float.compare(getDistance(a1), getDistance(a2)));
+
+        if (e.isEmpty()) return null;
+
+        return e.getFirst();
+    }
+
+    public Unit getFarthestWorker(){
+        ArrayList<Unit> workers = myWorkers;
+
+        workers.sort((a1, a2) -> Float.compare(a1.getDistance(getEnemyBase()), a2.getDistance(getEnemyBase())));
+
+        if (workers.isEmpty()) return null;
+
+        return workers.getFirst();
+    }
+
+    protected float getAverageUnitMaxSpeed() {
+        float totalSpeedToBeAveraged = 0;
+        ArrayList<Unit> allies = getAllies();
+        for (int i = 0; i<allies.size(); i++) {
+            if (!(allies.get(i).hasComponent(Collector.class) && !(allies.get(i).hasComponent(Drillbeam.class)))) {
+                totalSpeedToBeAveraged += allies.get(i).getMaxSpeed();
+            }
+            else {
+                allies.remove(i);
+                i--;
+            }
+        }
+        return totalSpeedToBeAveraged / allies.size();
+    }
+
+    protected boolean opponentHasLongRangeWeapons() {
+        ArrayList<Unit> enemies = getEnemies();
+        float totalDistanceToBeAveraged = 0;
+        for (int i = 0; i<enemies.size(); i++) {
+            if (!(enemies.get(i).hasComponent(Collector.class) && !(enemies.get(i).hasComponent(Drillbeam.class)))) {
+                totalDistanceToBeAveraged += enemies.get(i).getMaxRange();
+            }
+            else {
+                enemies.remove(i);
+                i--;
+            }
+        }
+        float averageEnemyDistance = totalDistanceToBeAveraged / enemies.size();
+
+        ArrayList<Unit> allies = getAllies();
+        float totalDistanceToBeAveragedAllies = 0;
+        for (int i = 0; i<allies.size(); i++) {
+            if (!(allies.get(i).hasComponent(Collector.class) && !(allies.get(i).hasComponent(Drillbeam.class)))) {
+                totalDistanceToBeAveragedAllies += allies.get(i).getMaxRange();
+            }
+        }
+        float averageEnemyDistanceAllies = totalDistanceToBeAveragedAllies / allies.size();
+
+        return averageEnemyDistance > averageEnemyDistanceAllies;
     }
 
     public NeverendingKnights getPlayer() {

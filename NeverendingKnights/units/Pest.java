@@ -1,4 +1,4 @@
-package teams.student.TestTeam.units;
+package teams.student.NeverendingKnights.units;
 
 import components.mod.offense.*;
 import components.upgrade.Shield;
@@ -13,25 +13,30 @@ import objects.entity.unit.Unit;
 import org.newdawn.slick.Color;
 import org.newdawn.slick.Graphics;
 import teams.student.NeverendingKnights.NeverendingKnightsUnit;
-import teams.student.TestTeam.TestTeamUnit;
 
-public class Pest extends TestTeamUnit
+import java.util.ArrayList;
+
+public class Pest extends NeverendingKnightsUnit
 {
     private String stage;
-    private Unit unitToAttack;
+    private static Unit unitToAttack;
     private Unit passByUnit;
     public int rand;
     private String safe;
+    public boolean isAntiRush;
 
-	public void design()
-	{	
-		setFrame(Frame.LIGHT);
-		setModel(Model.PROTOTYPE);
-		setStyle(Style.DAGGER);
+    public void design()
+    {
 
-		add(Laser.class);
+        setFrame(Frame.LIGHT);
+        setModel(Model.PROTOTYPE);
+        setStyle(Style.DAGGER);
+
+        add(Laser.class);
         add(SpeedBoost.class);
-		add(Shield.class);
+        add(Shield.class);
+
+//        shouldBeAntiRush();
 
         stage = "Waiting";
         unitToAttack = null;
@@ -39,16 +44,23 @@ public class Pest extends TestTeamUnit
         rand = (int) (Math.random() * 2);
         safe = "y";
 //        rand = 0;
-	}
+    }
 
     public void action() {
-        unitToAttack = getLowestSafeEnemyWorker(getWeaponOne().getMaxRange() * 3);
-//        unitToAttack = getIsolatedEnemyWorker();
+
+//        unitToAttack = getLowestSafeEnemyWorker(getWeaponOne().getMaxRange() * 3);
+//        if(isAntiRush) {
+//            unitToAttack = getLowestAttackingEnemy(getWeaponOne().getMaxRange() * 2);
+//        }
+//        else {
+//            unitToAttack = getIsolatedEnemyWorker();
+//        }
+
+        unitToAttack = getIsolatedEnemyWorker(5000);
         passByUnit = getLowestAttackingEnemy(getWeaponOne().getMaxRange() * 2);
 
-        if(getHomeBase().getDistance(getEnemyBase()) < 6000 || getEnemyBase().getPercentEffectiveHealth() < .5f)
-        {
-          stage = "Attacking";
+        if(getHomeBase().getDistance(getEnemyBase()) < 6000 || getEnemyBase().getPercentEffectiveHealth() < .5f) {
+            stage = "Attacking";
         }
 
         getWeapon(SpeedBoost.class).use();
@@ -59,14 +71,13 @@ public class Pest extends TestTeamUnit
 //            safe = "no";
 //        }
 
-        if (stage.equals("Waiting")){
 
-            if(rand == 0)
-            {
+        if (stage.equals("Waiting")) {
+
+            if(rand == 0) {
                 moveTo(getHomeBase().getCenterX(), 3500);
             }
-            else
-            {
+            else {
                 moveTo(getHomeBase().getCenterX(), -3500);
             }
 
@@ -75,16 +86,13 @@ public class Pest extends TestTeamUnit
                 getWeaponOne().use(passByUnit);
             }
 
-//            if((this.getPosition().getY() > getHomeBase().getCenterY() + 3250 && this.getPosition().getY() < getHomeBase().getCenterY() + 3750)
-//                    || (this.getPosition().getY() < getHomeBase().getCenterY() - 3250 && this.getPosition().getY() > getHomeBase().getCenterY() - 3750))
-//            {
-            if (getRealEnemiesInRadius(8000).size() >= 2) {
+//            if (getRealEnemiesInRadius(8000).size() >= 2) {
+//                stage = "Attacking";
+//            }
 
-            }
             if (getAlliesInRadius(400, Pest.class).size() > 3){
                 stage = "Flanking";
             }
-//            }
 
 
         }
@@ -138,18 +146,34 @@ public class Pest extends TestTeamUnit
         }
         if(stage.equals("Running"))
         {
-            if(getPlayer().isRightPlayer())
-            {
+            if(getPlayer().isRightPlayer()) {
                 moveTo(getPosition().getX() - 5000, getPosition().getY());
             }
-            if(getPlayer().isLeftPlayer())
-            {
+            if(getPlayer().isLeftPlayer()) {
                 moveTo(getPosition().getX() + 5000, getPosition().getY());
             }
-            if(!suicideCheck(getWeaponOne().getMaxRange() * 2, this))
-            {
+            if(!suicideCheck(getWeaponOne().getMaxRange() * 2, this)) {
                 stage = "Attacking";
             }
+        }
+    }
+
+    public void shouldBeAntiRush() {
+
+        ArrayList<Unit> pests = getPlayer().getMyUnits(Pest.class);
+        int totalAntiRushPests = 0;
+        for (Unit u: pests) {
+            if(u instanceof Pest) {
+                if(((Pest) u).isAntiRush) {
+                    totalAntiRushPests++;
+                }
+            }
+        }
+        if(totalAntiRushPests >= pests.size()/3) {
+            isAntiRush = false;
+        }
+        else {
+            isAntiRush = true;
         }
     }
 

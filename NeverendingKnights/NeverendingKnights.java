@@ -6,6 +6,7 @@ import objects.resource.ResourceManager;
 import org.newdawn.slick.Graphics;
 import player.Player;
 import teams.student.NeverendingKnights.units.*;
+import teams.student.NeverendingKnights.units.buffs.*;
 import teams.student.NeverendingKnights.units.resource.Gatherer;
 import teams.student.NeverendingKnights.units.resource.Miner;
 import teams.student.NeverendingKnights.units.resource.MinerBuffer;
@@ -30,7 +31,7 @@ public class NeverendingKnights extends Player
         setTeamImage("src/teams/student/neverendingKnights/teamLogo.png");
         setTitle("Neverending Knights");
 
-        setColorPrimary(0, 255, 255);
+        setColorPrimary(255, 188, 0);
         setColorSecondary(0, 255, 255);
         setColorAccent(255, 128, 128);
 
@@ -49,21 +50,39 @@ public class NeverendingKnights extends Player
         if (countUnit(this, MinerBuffer.class) < 1) {
             buildUnit(MinerBuffer.class);
         }
-
+        if (getFleetValueUnit(Commander.class) < 1) {
+            buildUnit(Commander.class);
+        }
+        if (getFleetValueUnit(OmenHealer.class) < 1) {
+            buildUnit(OmenHealer.class);
+        }
+        if (getFleetValueUnit(RevelryHealer.class) < 1) {
+            buildUnit(RevelryHealer.class);
+        }
+        if (getFleetValueUnit(GloryHealer.class) < 1) {
+            buildUnit(GloryHealer.class);
+        }
 
         if (timer < 180 * 60) {
-            if (getFleetValueUnitPercentage(Miner.class) < 0.25f) {
-                buildUnit(Miner.class);
-            }
-            if (getFleetValueUnitPercentage(Gatherer.class) < 0.25f) {
-                buildUnit(Gatherer.class);
-            }
-        } else if (timer < 300 * 60) {
-            if (getFleetValueUnitPercentage(Miner.class) < 0.15f) {
+            if (getFleetValueUnitPercentage(Miner.class) < 0.35f) {
                 buildUnit(Miner.class);
             }
             if (getFleetValueUnitPercentage(Gatherer.class) < 0.2f) {
                 buildUnit(Gatherer.class);
+            }
+            if (getFleetValueUnitPercentage(Pest.class) < 0.1f){
+                buildUnit(Pest.class);
+            }
+
+        } else if (timer < 300 * 60) {
+            if (getFleetValueUnitPercentage(Miner.class) < 0.2f) {
+                buildUnit(Miner.class);
+            }
+            if (getFleetValueUnitPercentage(Gatherer.class) < 0.15f) {
+                buildUnit(Gatherer.class);
+            }
+            if (getFleetValueUnitPercentage(Pest.class) < 0.05f){
+                buildUnit(Pest.class);
             }
         }
         else if (timer < 480 * 60) {
@@ -91,90 +110,26 @@ public class NeverendingKnights extends Player
             }
         }
 
+        if (countMyUnits(Destroyer.class) < NeverendingKnightsUnit.enemyRush.size() * 0.75f) {
+            buildUnit(Destroyer.class);
+        }
+
+        if (countMyUnits(Stunner.class) < 2 && countMyUnits(Tank.class) > 4) {
+            buildUnit(Stunner.class);
+        }
+        if (getFleetValueUnitPercentage(TankHealer.class) < 0.05 && countMyUnits(Tank.class) > 4) {
+            buildUnit(TankHealer.class);
+        }
+
+        if (getFleetValueUnitPercentage(Sniper.class) < 0.4f && getFleetValueUnitPercentage(Tank.class) > 0.12f){
+            buildUnit(Sniper.class);
+        }
+        if (getFleetValueUnitPercentage(MissileLauncher.class) < 0.15f && getFleetValueUnitPercentage(Tank.class) > 0.12f && getFleetValueUnitPercentage(Sniper.class) > 0.2f) {
+            buildUnit(MissileLauncher.class);
+        }
         if (getFleetValueUnitPercentage(Tank.class) < 0.2f) {
             buildUnit(Tank.class);
         }
-        if (getFleetValueUnitPercentage(Sniper.class) < 0.5f){
-            buildUnit(Sniper.class);
-        }
-        if (getFleetValueUnitPercentage(MissileLauncher.class) < 0.15f) {
-            buildUnit(MissileLauncher.class);
-        }
-
-
-//
-//        if (TestTeamUnit.teamStrategy.equals("Anti-Rush")) {
-//            if (getFleetValueUnitPercentage(Tank.class) < 0.15f) {
-//                buildUnit(Tank.class);
-//            }
-//            if (getFleetValueUnitPercentage(Sniper.class) < 0.6f){
-//                buildUnit(Sniper.class);
-//            }
-//            if (getFleetValueUnitPercentage(MissileLauncher.class) < 0.15f) {
-//                buildUnit(MissileLauncher.class);
-//            }
-//
-//        } else if (TestTeamUnit.teamStrategy.equals("Buildup")) {
-//            if (getFleetValueUnitPercentage(Tank.class) < 0.2f) {
-//                buildUnit(Tank.class);
-//            }
-//            if (getFleetValueUnitPercentage(Sniper.class) < 0.45f) {
-//                buildUnit(Sniper.class);
-//            }
-//            if (getFleetValueUnitPercentage(MissileLauncher.class) < 0.15f) {
-//                buildUnit(MissileLauncher.class);
-//            }
-//        } else if (TestTeamUnit.teamStrategy.equals("Range")) {
-//            if (getFleetValueUnitPercentage(Tank.class) < 0.2f) {
-//                buildUnit(Tank.class);
-//            }
-//            if (getFleetValueUnitPercentage(Sniper.class) < 0.4f) {
-//                buildUnit(Sniper.class);
-//            }
-//            if (getFleetValueUnitPercentage(MissileLauncher.class) < 0.25f) {
-//                buildUnit(MissileLauncher.class);
-//            }
-//        } else if (TestTeamUnit.teamStrategy.equals("Rush")) {
-//            if (getFleetValueUnitPercentage(Tank.class) < 0.25f) {
-//                buildUnit(Tank.class);
-//            }
-//            if (getFleetValueUnitPercentage(Sniper.class) < 0.5f) {
-//                buildUnit(Sniper.class);
-//            }
-//
-//        } else if (TestTeamUnit.teamStrategy.equals("DPS Buildup")) {
-//            if (getFleetValueUnitPercentage(Tank.class) < 0.2f) {
-//                buildUnit(Tank.class);
-//            }
-//            if (getFleetValueUnitPercentage(Sniper.class) < 0.5f) {
-//                buildUnit(Sniper.class);
-//            }
-//            if (getFleetValueUnitPercentage(MissileLauncher.class) < 0.2f) {
-//                buildUnit(MissileLauncher.class);
-//            }
-//        } else if (TestTeamUnit.teamStrategy.equals("Range Buildup")) {
-//            if (getFleetValueUnitPercentage(Tank.class) < 0.2f) {
-//                buildUnit(Tank.class);
-//            }
-//            if (getFleetValueUnitPercentage(Sniper.class) < 0.5f) {
-//                buildUnit(Sniper.class);
-//            }
-//            if (getFleetValueUnitPercentage(MissileLauncher.class) < 0.2f) {
-//                buildUnit(MissileLauncher.class);
-//            }
-//        } else if (TestTeamUnit.teamStrategy.equals("Undecided")) {
-//            if (getFleetValueUnitPercentage(Tank.class) < 0.15f) {
-//                buildUnit(Tank.class);
-//            }
-//
-//            if (getFleetValueUnitPercentage(Sniper.class) < 0.5f) {
-//                buildUnit(Sniper.class);
-//            }
-//
-//            if (getFleetValueUnitPercentage(MissileLauncher.class) < 0.2f) {
-//                buildUnit(MissileLauncher.class);
-//            }
-//        }
     }
 
     public void draw(Graphics g)
@@ -211,6 +166,9 @@ public class NeverendingKnights extends Player
         addMessage("Nodes: " + NodeManager.getNodes().size());
         addMessage("Resources: " + ResourceManager.getResources().size());
         addMessage("Estimated Resources: " + estimatedMapResources);
+        addMessage(" ");
+        addMessage("Front X: " + NeverendingKnightsUnit.furthestTankX);
+        addMessage("Front Y: " + NeverendingKnightsUnit.furthestTankY);
 
     }
 

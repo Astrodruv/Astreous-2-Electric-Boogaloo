@@ -5,6 +5,7 @@ import components.weapon.Weapon;
 import components.weapon.economy.Drillbeam;
 import engine.states.Game;
 import objects.entity.node.Node;
+import objects.entity.node.NodeManager;
 import objects.entity.unit.Frame;
 import objects.entity.unit.Model;
 import objects.entity.unit.Style;
@@ -32,7 +33,7 @@ public class Miner extends NeverendingKnightsUnit
                 setRallyPoint();
             }
         }
-        if (MinerBuffer.bestNode == null && getNearestNode() == null) {
+        if ((MinerBuffer.bestNode == null && getNearestNode() == null) || NodeManager.getNodes().size() <= 5 || Game.getTime() >= 850 * 60) {
             moveTo(getEnemyBase());
             getWeaponOne().use(getEnemyBase());
         }
@@ -44,13 +45,8 @@ public class Miner extends NeverendingKnightsUnit
                         harvest(MinerBuffer.bestNode, getWeaponOne()); // Must mine in clusters
                     } else harvest(getNearestNode(), getWeaponOne());
                 } else {
-                    if (isInBounds()) {
-                        turnTo(threat);
-                        turnAround();
-                        move();
-                    } else {
-                        moveTo(getHomeBase());
-                    }
+                    moveTo(MinerBuffer.bestNode);
+                    getWeaponOne().use(getNearestEnemyThreat());
                 }
             }
         }
