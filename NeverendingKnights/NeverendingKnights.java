@@ -70,9 +70,9 @@ public class NeverendingKnights extends Player
             if (getFleetValueUnitPercentage(Gatherer.class) < 0.2f) {
                 buildUnit(Gatherer.class);
             }
-            if (getFleetValueUnitPercentage(Pest.class) < 0.1f){
-                buildUnit(Pest.class);
-            }
+//            if (getFleetValueUnitPercentage(Pest.class) < 0.1f){
+//                buildUnit(Pest.class);
+//            }
 
         } else if (timer < 300 * 60) {
             if (getFleetValueUnitPercentage(Miner.class) < 0.2f) {
@@ -81,9 +81,9 @@ public class NeverendingKnights extends Player
             if (getFleetValueUnitPercentage(Gatherer.class) < 0.15f) {
                 buildUnit(Gatherer.class);
             }
-            if (getFleetValueUnitPercentage(Pest.class) < 0.05f){
-                buildUnit(Pest.class);
-            }
+//            if (getFleetValueUnitPercentage(Pest.class) < 0.05f){
+//                buildUnit(Pest.class);
+//            }
         }
         else if (timer < 480 * 60) {
             if (getFleetValueUnitPercentage(Miner.class) < 0.1f) {
@@ -92,9 +92,10 @@ public class NeverendingKnights extends Player
             if (getFleetValueUnitPercentage(Gatherer.class) < 0.1f) {
                 buildUnit(Gatherer.class);
             }
-            if (getFleetValueUnitPercentage(Pest.class) < 0.05f){
-                buildUnit(Pest.class);
-            }
+//            if (getFleetValueUnitPercentage(Pest.class) < 0.05f){
+//                buildUnit(Pest.class);
+//            }
+
         }
         else if (timer < 700 * 60) {
             if (getFleetValueUnitPercentage(Miner.class) < 0.05f) {
@@ -121,12 +122,13 @@ public class NeverendingKnights extends Player
             buildUnit(TankHealer.class);
         }
 
-        if (getFleetValueUnitPercentage(Sniper.class) < 0.4f && getFleetValueUnitPercentage(Tank.class) > 0.12f){
+        if (getFleetValueUnitPercentage(Sniper.class) < 0.35f && getFleetValueUnitPercentage(Tank.class) > 0.12f){
             buildUnit(Sniper.class);
         }
-        if (getFleetValueUnitPercentage(MissileLauncher.class) < 0.15f && getFleetValueUnitPercentage(Tank.class) > 0.12f && getFleetValueUnitPercentage(Sniper.class) > 0.2f) {
+        if (getFleetValueUnitPercentage(MissileLauncher.class) < 0.1f && getFleetValueUnitPercentage(Tank.class) > 0.08f && getFleetValueUnitPercentage(Sniper.class) > 0.2f) {
             buildUnit(MissileLauncher.class);
         }
+
         if (getFleetValueUnitPercentage(Tank.class) < 0.2f) {
             buildUnit(Tank.class);
         }

@@ -188,7 +188,9 @@ public abstract class NeverendingKnightsUnit extends Unit
     }
 
     public void act(){
-        currentTarget = getBiggestThreatInRadius(getMaxRange() * 3);
+//        currentTarget = getBiggestThreatInRadius(getMaxRange() * 3);
+        currentTarget = getBiggestThreatInRadius(getMaxRange() * 1.25f);
+//        currentTarget = lowestTarget((int) (getMaxRange() * 1.25f));
 
         attack(getWeaponOne());
         attack(getWeaponTwo());
@@ -575,7 +577,7 @@ public abstract class NeverendingKnightsUnit extends Unit
     }
 
     public void calculateMainPushStrength(){
-        if (relativeAttackerStrength > relativeEnemyThreatStrength * 1.5){
+        if (relativeAttackerStrength > relativeEnemyThreatStrength * 1.35){
             myMainPushStrength = "Very High";
         }
         else if (relativeAttackerStrength > relativeEnemyThreatStrength * 1.15f){
@@ -777,6 +779,28 @@ public abstract class NeverendingKnightsUnit extends Unit
         g.drawLine(getCenterX(), getCenterY(), avgMainPushX, avgMainPushY);
     }
 
+    public ArrayList<Unit> getEnemyThreatsInRange(int range){
+        ArrayList<Unit> threats = new ArrayList<>();
+
+        for (Unit u : getEnemies()) {
+            if (!u.hasWeapon(Collector.class) && getDistance(u) < range) threats.add(u);
+        }
+
+        return threats;
+    }
+
+    public Unit lowestTarget(int range) {
+        ArrayList<Unit> e = getEnemyThreatsInRange(range);
+
+        e.sort((e1, e2) -> Float.compare(e1.getPercentEffectiveHealth(), e2.getPercentEffectiveHealth()));
+
+        if (!e.isEmpty()) {
+            return e.getFirst();
+        }
+
+        else return null;
+    }
+
     //**********************************************************************************
     // ENEMY TARGETING *****************************************************************
     //**********************************************************************************
@@ -805,7 +829,7 @@ public abstract class NeverendingKnightsUnit extends Unit
                 }
             }
         }
-//        if (bestEnemy != null && (bestEnemy.hasComponent(Collector.class))) return null;
+        if (bestEnemy != null && (bestEnemy.hasComponent(Collector.class))) return null;
         if (bestEnemy != null) return bestEnemy;
         return null;
     }
@@ -1117,11 +1141,14 @@ public abstract class NeverendingKnightsUnit extends Unit
     }
 
     public boolean hasAntiMissiles() {
+        int antiMissiles = 0;
         for (Unit l : getEnemies()) {
             if (l.hasComponent(AntiMissileSystem.class)) {
-                return true;
+                antiMissiles++;
             }
         }
+
+        if (antiMissiles >= 3) return true;
         return false;
     }
 

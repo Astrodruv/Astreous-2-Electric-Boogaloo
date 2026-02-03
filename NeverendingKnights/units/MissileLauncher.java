@@ -2,7 +2,11 @@ package teams.student.NeverendingKnights.units;
 
 import components.mod.offense.CerberusMod;
 import components.mod.offense.NyxMod;
+import components.mod.offense.PoseidonMod;
+import components.mod.offense.ZeusMod;
 import components.upgrade.Munitions;
+import components.upgrade.Shield;
+import components.weapon.energy.Laser;
 import components.weapon.explosive.Missile;
 import objects.entity.unit.Frame;
 import objects.entity.unit.Model;
@@ -16,19 +20,27 @@ public class MissileLauncher extends NeverendingKnightsUnit {
     // For best enemy, should prioritize highly clustered swarms rather than typical bestTarget
 
     public void design() {
-        setFrame(Frame.MEDIUM);
-        setModel(Model.PROTOTYPE);
-        setStyle(Style.DAGGER);
-
-        add(Missile.class);
-        add(Missile.class);
-        add(Munitions.class);
-
-        double chance = Math.random();
-        if (chance > 0.5) {
-            add(CerberusMod.class);
-        } else {
-            add(NyxMod.class);
+        if (!hasAntiMissiles()) {
+            setFrame(Frame.HEAVY);
+            setModel(Model.ARTILLERY);
+            setStyle(Style.DAGGER);
+            add(Missile.class);
+            add(Missile.class);
+            add(Munitions.class);
+            double chance = Math.random();
+            if (chance > 0.5) {
+                add(CerberusMod.class);
+            } else {
+                add(NyxMod.class);
+            }
+        }
+        else{
+            setFrame(Frame.MEDIUM);
+            setModel(Model.ARTILLERY);
+            setStyle(Style.DAGGER);
+            add(Laser.class);
+            add(Shield.class);
+            add(PoseidonMod.class);
         }
     }
 
