@@ -1,7 +1,10 @@
 package teams.student.NeverendingKnights.units;
 
+import components.mod.offense.AchillesMod;
+import components.mod.offense.AresMod;
 import components.upgrade.*;
 import components.weapon.energy.Laser;
+import components.weapon.kinetic.Autocannon;
 import components.weapon.utility.SpeedBoost;
 import objects.entity.unit.Frame;
 import objects.entity.unit.Model;
@@ -17,12 +20,21 @@ public class Destroyer extends NeverendingKnightsUnit {
 
     public void design(){
         setFrame(Frame.MEDIUM);
-        setModel(Model.DESTROYER);
         setStyle(Style.ARROW);
 
-        add(Laser.class);
-        add(SpeedBoost.class);
-        add(Shield.class);
+        if (Math.random() < 0.7) {
+            setModel(Model.STRIKER);
+            add(Laser.class);
+            add(SpeedBoost.class);
+            add(Shield.class);
+        }
+        else{
+            setModel(Model.PROTOTYPE);
+            add(Autocannon.class);
+            add(AchillesMod.class);
+            add(SpeedBoost.class);
+            add(Shield.class);
+        }
 
         raiderUnit = null;
     }
@@ -41,6 +53,7 @@ public class Destroyer extends NeverendingKnightsUnit {
         Unit raiderUnit = getNearestRaiderUnit();
         if (isInBounds()) {
             if (getHomeBase().getDistance(raiderUnit) < 5000 || getDistance(raiderUnit) < 3000) {
+                getWeapon(SpeedBoost.class).use();
                 if (getDistance(getNearestRaiderUnit()) > getMaxRange()) {
                     moveTo(getNearestRaiderUnit());
                     getWeaponTwo().use();

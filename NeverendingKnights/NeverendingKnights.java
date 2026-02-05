@@ -22,6 +22,7 @@ public class NeverendingKnights extends Player
     public static int resourceGrabberCount;
 
     public static int estimatedMapResources;
+    public static boolean spawnMiners;
 
     public static ArrayList<Unit> tanks;
 
@@ -39,6 +40,7 @@ public class NeverendingKnights extends Player
 
         gameStage = "Instant";
         estimatedMapResources = (getAllNodes().size() * 12) + ResourceManager.getResources().size();
+        spawnMiners = true;
     }
 
     public void strategy() {
@@ -64,10 +66,10 @@ public class NeverendingKnights extends Player
         }
 
         if (timer < 180 * 60) {
-            if (getFleetValueUnitPercentage(Miner.class) < 0.35f) {
+            if (getFleetValueUnitPercentage(Miner.class) < 0.35f && countMyUnits(Miner.class) < 17 && spawnMiners) {
                 buildUnit(Miner.class);
             }
-            if (getFleetValueUnitPercentage(Gatherer.class) < 0.2f) {
+            if (getFleetValueUnitPercentage(Gatherer.class) < 0.2f && countMyUnits(Gatherer.class) < 15) {
                 buildUnit(Gatherer.class);
             }
 //            if (getFleetValueUnitPercentage(Pest.class) < 0.1f){
@@ -75,10 +77,10 @@ public class NeverendingKnights extends Player
 //            }
 
         } else if (timer < 300 * 60) {
-            if (getFleetValueUnitPercentage(Miner.class) < 0.2f) {
+            if (getFleetValueUnitPercentage(Miner.class) < 0.2f && countMyUnits(Miner.class) < 12 && spawnMiners) {
                 buildUnit(Miner.class);
             }
-            if (getFleetValueUnitPercentage(Gatherer.class) < 0.15f) {
+            if (getFleetValueUnitPercentage(Gatherer.class) < 0.15f && countMyUnits(Gatherer.class) < 14) {
                 buildUnit(Gatherer.class);
             }
 //            if (getFleetValueUnitPercentage(Pest.class) < 0.05f){
@@ -86,27 +88,23 @@ public class NeverendingKnights extends Player
 //            }
         }
         else if (timer < 480 * 60) {
-            if (getFleetValueUnitPercentage(Miner.class) < 0.1f) {
+            if (getFleetValueUnitPercentage(Miner.class) < 0.1f && countMyUnits(Miner.class) < 10 && spawnMiners) {
                 buildUnit(Miner.class);
             }
-            if (getFleetValueUnitPercentage(Gatherer.class) < 0.1f) {
+            if (getFleetValueUnitPercentage(Gatherer.class) < 0.1f && countMyUnits(Gatherer.class) < 12) {
                 buildUnit(Gatherer.class);
             }
-//            if (getFleetValueUnitPercentage(Pest.class) < 0.05f){
-//                buildUnit(Pest.class);
-//            }
-
         }
         else if (timer < 700 * 60) {
-            if (getFleetValueUnitPercentage(Miner.class) < 0.05f) {
+            if (getFleetValueUnitPercentage(Miner.class) < 0.05f && countMyUnits(Miner.class) < 7 && spawnMiners) {
                 buildUnit(Miner.class);
             }
-            if (getFleetValueUnitPercentage(Gatherer.class) < 0.15f) {
+            if (getFleetValueUnitPercentage(Gatherer.class) < 0.15f && countMyUnits(Gatherer.class) < 8) {
                 buildUnit(Gatherer.class);
             }
         }
         else if (timer < 900 * 60) {
-            if (getFleetValueUnitPercentage(Gatherer.class) < 0.1f) {
+            if (getFleetValueUnitPercentage(Gatherer.class) < 0.1f && countMyUnits(Gatherer.class) < 8) {
                 buildUnit(Gatherer.class);
             }
         }
@@ -115,23 +113,28 @@ public class NeverendingKnights extends Player
             buildUnit(Destroyer.class);
         }
 
-        if (countMyUnits(Stunner.class) < 2 && countMyUnits(Tank.class) > 4) {
-            buildUnit(Stunner.class);
-        }
+//        if (countMyUnits(Stunner.class) < 2 && countMyUnits(Tank.class) > 4) {
+//            buildUnit(Stunner.class);
+//        }
+
         if (getFleetValueUnitPercentage(TankHealer.class) < 0.05 && countMyUnits(Tank.class) > 4) {
             buildUnit(TankHealer.class);
         }
 
-        if (getFleetValueUnitPercentage(Sniper.class) < 0.35f && getFleetValueUnitPercentage(Tank.class) > 0.12f){
-            buildUnit(Sniper.class);
-        }
-        if (getFleetValueUnitPercentage(MissileLauncher.class) < 0.1f && getFleetValueUnitPercentage(Tank.class) > 0.08f && getFleetValueUnitPercentage(Sniper.class) > 0.2f) {
+
+        if (getFleetValueUnitPercentage(MissileLauncher.class) < 0.175f && getFleetValueUnitPercentage(Sniper.class) > 0.25f && getFleetValueUnitPercentage(Tank.class) > 0.15f){
             buildUnit(MissileLauncher.class);
         }
-
-        if (getFleetValueUnitPercentage(Tank.class) < 0.2f) {
+        else if (getFleetValueUnitPercentage(Sniper.class) < 0.4f && getFleetValueUnitPercentage(Tank.class) > .15f){
+            buildUnit(Sniper.class);
+        }
+        else if (getFleetValueUnitPercentage(Tank.class) < 0.2f){
             buildUnit(Tank.class);
         }
+        else{
+            buildUnit(Sniper.class);
+        }
+
     }
 
     public void draw(Graphics g)
@@ -144,34 +147,40 @@ public class NeverendingKnights extends Player
 //
 //        addMessage("Game Stage: " + gameStage);
 
-        addMessage("Team Strategy: " + NeverendingKnightsUnit.teamStrategy);
-        addMessage("Team Alert: " + NeverendingKnightsUnit.teamAlert);
-        addMessage("Main Push Strength: " + NeverendingKnightsUnit.myMainPushStrength);
-        addMessage("Main Push Density: " + NeverendingKnightsUnit.myMainPushDensity);
-        addMessage("Main Push : " + NeverendingKnightsUnit.mainPushState);
-        addMessage("Attack State : " + NeverendingKnightsUnit.attackState);
-        addMessage("Main Push Avg Dist : " + (NeverendingKnightsUnit.mainPushAvgDist > getMyBase().getDistance(getEnemyBase()) / 3));
-        addMessage(" ");
-        addMessage("Enemy Scheme: " + NeverendingKnightsUnit.enemyAttackScheme);
-        addMessage("Enemy Workers: " + NeverendingKnightsUnit.enemyWorkerStrength);
-        addMessage("Nearest Enemy: " + NeverendingKnightsUnit.nearestEnemyThreatDist);
-        addMessage("Missile Threat: " + NeverendingKnightsUnit.enemyMissileThreat);
-        addMessage(" ");
-        addMessage("Attacker Value: " + NeverendingKnightsUnit.relativeAttackerStrength);
-        addMessage("Threat Value: " + NeverendingKnightsUnit.relativeEnemyThreatStrength);
-        addMessage(" ");
-        addMessage("Light Threats: " + NeverendingKnightsUnit.lightEnemyThreats);
-        addMessage("Medium Threats: " + NeverendingKnightsUnit.mediumEnemyThreats);
-        addMessage("Heavy Threats: " + NeverendingKnightsUnit.heavyEnemyThreats);
-        addMessage("Assault Threats: " + NeverendingKnightsUnit.assaultEnemyThreats);
-        addMessage(" ");
-        addMessage("Nodes: " + NodeManager.getNodes().size());
-        addMessage("Resources: " + ResourceManager.getResources().size());
-        addMessage("Estimated Resources: " + estimatedMapResources);
-        addMessage(" ");
-        addMessage("Front X: " + NeverendingKnightsUnit.furthestTankX);
-        addMessage("Front Y: " + NeverendingKnightsUnit.furthestTankY);
+        addMessage("Num Minerals: " + getStoredResources());
 
+//        addMessage("Team Strategy: " + NeverendingKnightsUnit.teamStrategy);
+//        addMessage("Team Alert: " + NeverendingKnightsUnit.teamAlert);
+//        addMessage("Main Push Strength: " + NeverendingKnightsUnit.myMainPushStrength);
+//        addMessage("Main Push Density: " + NeverendingKnightsUnit.myMainPushDensity);
+//        addMessage("Main Push : " + NeverendingKnightsUnit.mainPushState);
+//        addMessage("Attack State : " + NeverendingKnightsUnit.attackState);
+//        addMessage("Main Push Avg Dist : " + (NeverendingKnightsUnit.mainPushAvgDist > getMyBase().getDistance(getEnemyBase()) / 3));
+//        addMessage(" ");
+//        addMessage("Enemy Scheme: " + NeverendingKnightsUnit.enemyAttackScheme);
+//        addMessage("Enemy Workers: " + NeverendingKnightsUnit.enemyWorkerStrength);
+//        addMessage("Nearest Enemy: " + NeverendingKnightsUnit.nearestEnemyThreatDist);
+//        addMessage("Missile Threat: " + NeverendingKnightsUnit.enemyMissileThreat);
+//        addMessage(" ");
+//        addMessage("Attacker Value: " + NeverendingKnightsUnit.relativeAttackerStrength);
+//        addMessage("Threat Value: " + NeverendingKnightsUnit.relativeEnemyThreatStrength);
+//        addMessage(" ");
+//        addMessage("Light Threats: " + NeverendingKnightsUnit.lightEnemyThreats);
+//        addMessage("Medium Threats: " + NeverendingKnightsUnit.mediumEnemyThreats);
+//        addMessage("Heavy Threats: " + NeverendingKnightsUnit.heavyEnemyThreats);
+//        addMessage("Assault Threats: " + NeverendingKnightsUnit.assaultEnemyThreats);
+//        addMessage(" ");
+//        addMessage("Nodes: " + NodeManager.getNodes().size());
+//        addMessage("Resources: " + ResourceManager.getResources().size());
+//        addMessage("Estimated Resources: " + estimatedMapResources);
+//        addMessage(" ");
+//        addMessage("Front X: " + NeverendingKnightsUnit.furthestTankX);
+//        addMessage("Front Y: " + NeverendingKnightsUnit.furthestTankY);
+
+    }
+
+    public float getStoredResources(){
+        return getMinerals();
     }
 
 }

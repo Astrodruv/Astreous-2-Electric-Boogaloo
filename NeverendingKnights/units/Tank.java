@@ -1,6 +1,7 @@
 package teams.student.NeverendingKnights.units;
 
 import components.mod.offense.AresMod;
+import components.upgrade.HeavyPlating;
 import components.upgrade.Plating;
 import components.weapon.kinetic.Autocannon;
 import components.weapon.utility.AntiMissileSystem;
@@ -17,8 +18,7 @@ public class Tank extends NeverendingKnightsUnit {
         setModel(Model.PROTOTYPE);
         setStyle(Style.CRESCENT);
 
-        add(Plating.class);
-        add(Plating.class);
+        add(HeavyPlating.class);
         add(Plating.class);
 
         if (enemyMissileThreat.equals("High") || enemyMissileThreat.equals("Medium")){

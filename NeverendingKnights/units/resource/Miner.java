@@ -11,6 +11,7 @@ import objects.entity.unit.Model;
 import objects.entity.unit.Style;
 import objects.entity.unit.Unit;
 import org.newdawn.slick.Graphics;
+import teams.student.NeverendingKnights.NeverendingKnights;
 import teams.student.NeverendingKnights.NeverendingKnightsUnit;
 
 public class Miner extends NeverendingKnightsUnit
@@ -36,6 +37,7 @@ public class Miner extends NeverendingKnightsUnit
         if ((MinerBuffer.bestNode == null && getNearestNode() == null) || NodeManager.getNodes().size() <= 5 || Game.getTime() >= 850 * 60) {
             moveTo(getEnemyBase());
             getWeaponOne().use(getEnemyBase());
+            if (NeverendingKnights.spawnMiners) NeverendingKnights.spawnMiners = false;
         }
         else {
             if (getNearestEnemyThreat() != null) {

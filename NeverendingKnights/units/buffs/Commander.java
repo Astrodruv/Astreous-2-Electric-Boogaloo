@@ -22,9 +22,12 @@ public class Commander extends NeverendingKnightsUnit {
     }
 
     public void act() {
-        if (getPlayer().isLeftPlayer()) moveTo(furthestTankX - 300, furthestTankY);
-        else if (getPlayer().isRightPlayer()) moveTo(furthestTankX + 300, furthestTankY);
-        if (getDistance(furthestTankX, furthestTankY) < 500) {
+        if (getPlayer().isLeftPlayer()) moveTo(furthestTankX - 450, furthestTankY);
+        else if (getPlayer().isRightPlayer()) moveTo(furthestTankX + 450, furthestTankY);
+//        if (getDistance(furthestTankX, furthestTankY) < 500) {
+//            getWeapon(CommandRelay.class).use();
+//        }
+        if (!getEnemiesInRadius(getMaxRange() * 4).isEmpty()){
             getWeapon(CommandRelay.class).use();
         }
     }
