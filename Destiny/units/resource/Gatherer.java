@@ -1,8 +1,7 @@
-package teams.student.TestTeam.units.resource;
+package teams.student.Destiny.units.resource;
 
 
 import components.weapon.economy.Collector;
-import engine.states.Game;
 import objects.entity.unit.Frame;
 import objects.entity.unit.Model;
 import objects.entity.unit.Style;
@@ -10,13 +9,12 @@ import objects.entity.unit.Unit;
 import objects.resource.Resource;
 import org.newdawn.slick.Color;
 import org.newdawn.slick.Graphics;
-import org.newdawn.slick.geom.Point;
-import teams.student.TestTeam.TestTeam;
-import teams.student.TestTeam.TestTeamUnit;
+import teams.student.Destiny.Destiny;
+import teams.student.Destiny.DestinyUnit;
 
 import java.util.ArrayList;
 
-public class Gatherer extends TestTeamUnit
+public class Gatherer extends DestinyUnit
 {
     public ArrayList<Resource> assignedResources;
     private int i;
@@ -36,26 +34,20 @@ public class Gatherer extends TestTeamUnit
         dumpedResources = new ArrayList<>();
         if (allDumpedResources == null) allDumpedResources = new ArrayList<>();
 
+
         i = 0;
         timeToGainSpeed = 0;
 	}
 
 	public void action() 
 	{
-        if (myAttackers.isEmpty()){
-            if (Game.getTime() % 10 == 0) {
-                calculations();
-                setState();
-                setRallyPoint();
-            }
-        }
         i++;
-        if (!TestTeam.resourceAssigner.allResourcesFinished) {
+        if (!Destiny.resourceAssigner.allResourcesFinished) {
             returnResources();
-            if (assignedResources != null && assignedResources.isEmpty() && isEmpty()) TestTeam.resourceAssigner.assignResources(this);
+            if (assignedResources != null && assignedResources.isEmpty() && isEmpty()) Destiny.resourceAssigner.assignResources(this);
             gatherResources();
 
-            if (i % 10 == 0) TestTeam.resourceAssigner.updateResources(this);
+            if (i % 10 == 0) Destiny.resourceAssigner.updateResources(this);
         }
         else{
             if (assignedResources != null && assignedResources.isEmpty() && isEmpty()) {
@@ -65,7 +57,7 @@ public class Gatherer extends TestTeamUnit
             }
             else{
                 returnResources();
-                if (assignedResources != null && assignedResources.isEmpty() && isEmpty()) TestTeam.resourceAssigner.assignResources(this);
+                if (assignedResources != null && assignedResources.isEmpty() && isEmpty()) Destiny.resourceAssigner.assignResources(this);
                 gatherResources();
             }
         }
@@ -73,7 +65,7 @@ public class Gatherer extends TestTeamUnit
 
 	public void returnResources()
 	{
-        if (TestTeam.resourceGrabberCount > 0) {
+        if (Destiny.resourceGrabberCount > 0) {
             if (assignedResources.isEmpty()) {
                     if (timeToGainSpeed < 600 && getDistance(getHomeBase()) > 250) {
                         float distance = getDistance(getHomeBase());
@@ -115,7 +107,7 @@ public class Gatherer extends TestTeamUnit
                         ((Collector) getWeaponOne()).use(r);
                         if (r.isPickedUp()) {
                             assignedResources.remove(r);
-                            TestTeam.resourceAssigner.assignedResources.remove(r);
+                            Destiny.resourceAssigner.assignedResources.remove(r);
                         }
                     }
                     else{

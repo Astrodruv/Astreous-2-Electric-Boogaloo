@@ -1,18 +1,19 @@
-package teams.student.TestTeam.units.resource;
+package teams.student.Destiny.units.resource;
 
 
 import components.weapon.Weapon;
 import components.weapon.economy.Drillbeam;
 import engine.states.Game;
 import objects.entity.node.Node;
+import objects.entity.node.NodeManager;
 import objects.entity.unit.Frame;
 import objects.entity.unit.Model;
 import objects.entity.unit.Style;
 import objects.entity.unit.Unit;
 import org.newdawn.slick.Graphics;
-import teams.student.TestTeam.TestTeamUnit;
+import teams.student.Destiny.DestinyUnit;
 
-public class Miner extends TestTeamUnit
+public class Miner extends DestinyUnit
 {
 
 	public void design()
@@ -25,14 +26,7 @@ public class Miner extends TestTeamUnit
 
 
     public void action() {
-        if (myAttackers.isEmpty()){
-            if (Game.getTime() % 10 == 0) {
-                calculations();
-                setState();
-                setRallyPoint();
-            }
-        }
-        if (MinerBuffer.bestNode == null && getNearestNode() == null) {
+        if ((MinerBuffer.bestNode == null && getNearestNode() == null) || NodeManager.getNodes().size() <= 5 || Game.getTime() >= 850 * 60) {
             moveTo(getEnemyBase());
             getWeaponOne().use(getEnemyBase());
         }
@@ -44,12 +38,14 @@ public class Miner extends TestTeamUnit
                         harvest(MinerBuffer.bestNode, getWeaponOne()); // Must mine in clusters
                     } else harvest(getNearestNode(), getWeaponOne());
                 } else {
-                    if (isInBounds()) {
+                    if (threat.getFrame().equals(Frame.LIGHT)){
+                        moveTo(threat);
+                        getWeaponOne().use(threat);
+                    }
+                    else {
                         turnTo(threat);
                         turnAround();
                         move();
-                    } else {
-                        moveTo(getHomeBase());
                     }
                 }
             }

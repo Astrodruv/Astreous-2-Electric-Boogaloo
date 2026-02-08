@@ -1,11 +1,11 @@
-package teams.student.TestTeam;
+package teams.student.Destiny;
 
 import objects.entity.node.NodeManager;
 import objects.entity.unit.BaseShip;
 import objects.resource.Resource;
 import objects.resource.ResourceManager;
 import player.Player;
-import teams.student.TestTeam.units.resource.Gatherer;
+import teams.student.Destiny.units.resource.Gatherer;
 
 import java.util.ArrayList;
 

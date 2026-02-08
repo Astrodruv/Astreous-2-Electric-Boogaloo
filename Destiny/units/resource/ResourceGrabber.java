@@ -1,4 +1,4 @@
-package teams.student.TestTeam.units.resource;
+package teams.student.Destiny.units.resource;
 
 import components.weapon.economy.Collector;
 import objects.entity.unit.Frame;
@@ -6,9 +6,9 @@ import objects.entity.unit.Model;
 import objects.entity.unit.Style;
 import objects.resource.Resource;
 import org.newdawn.slick.Graphics;
-import teams.student.TestTeam.TestTeamUnit;
+import teams.student.Destiny.DestinyUnit;
 
-public class ResourceGrabber extends TestTeamUnit {
+public class ResourceGrabber extends DestinyUnit {
 
     public void design()
     {

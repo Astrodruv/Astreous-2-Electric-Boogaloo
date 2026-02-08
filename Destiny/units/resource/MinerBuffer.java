@@ -1,4 +1,4 @@
-package teams.student.TestTeam.units.resource;
+package teams.student.Destiny.units.resource;
 
 import components.mod.utility.AthenaMod;
 import components.weapon.utility.CommandRelay;
@@ -10,11 +10,11 @@ import objects.entity.unit.Style;
 import objects.entity.unit.Unit;
 import org.newdawn.slick.Color;
 import org.newdawn.slick.Graphics;
-import teams.student.TestTeam.TestTeamUnit;
+import teams.student.Destiny.DestinyUnit;
 
 import java.util.ArrayList;
 
-public class MinerBuffer extends TestTeamUnit {
+public class MinerBuffer extends DestinyUnit {
 
     public static Node bestNode;
     public static ArrayList<Node> bestNodes;
