@@ -52,6 +52,7 @@ public class NeverendingKnights extends Player
         if (countUnit(this, MinerBuffer.class) < 1) {
             buildUnit(MinerBuffer.class);
         }
+
         if (getFleetValueUnit(Commander.class) < 1) {
             buildUnit(Commander.class);
         }
@@ -147,23 +148,22 @@ public class NeverendingKnights extends Player
 //
 //        addMessage("Game Stage: " + gameStage);
 
-        addMessage("Num Minerals: " + getStoredResources());
 
-//        addMessage("Team Strategy: " + NeverendingKnightsUnit.teamStrategy);
-//        addMessage("Team Alert: " + NeverendingKnightsUnit.teamAlert);
-//        addMessage("Main Push Strength: " + NeverendingKnightsUnit.myMainPushStrength);
-//        addMessage("Main Push Density: " + NeverendingKnightsUnit.myMainPushDensity);
-//        addMessage("Main Push : " + NeverendingKnightsUnit.mainPushState);
-//        addMessage("Attack State : " + NeverendingKnightsUnit.attackState);
+        addMessage("Team Strategy: " + NeverendingKnightsUnit.teamStrategy);
+        addMessage("Team Alert: " + NeverendingKnightsUnit.teamAlert);
+        addMessage("Main Push Strength: " + NeverendingKnightsUnit.myMainPushStrength);
+        addMessage("Main Push Density: " + NeverendingKnightsUnit.myMainPushDensity);
+        addMessage("Main Push : " + NeverendingKnightsUnit.mainPushState);
+        addMessage("Attack State : " + NeverendingKnightsUnit.attackState);
 //        addMessage("Main Push Avg Dist : " + (NeverendingKnightsUnit.mainPushAvgDist > getMyBase().getDistance(getEnemyBase()) / 3));
 //        addMessage(" ");
 //        addMessage("Enemy Scheme: " + NeverendingKnightsUnit.enemyAttackScheme);
 //        addMessage("Enemy Workers: " + NeverendingKnightsUnit.enemyWorkerStrength);
 //        addMessage("Nearest Enemy: " + NeverendingKnightsUnit.nearestEnemyThreatDist);
 //        addMessage("Missile Threat: " + NeverendingKnightsUnit.enemyMissileThreat);
-//        addMessage(" ");
-//        addMessage("Attacker Value: " + NeverendingKnightsUnit.relativeAttackerStrength);
-//        addMessage("Threat Value: " + NeverendingKnightsUnit.relativeEnemyThreatStrength);
+        addMessage(" ");
+        addMessage("Attacker Value: " + NeverendingKnightsUnit.relativeAttackerStrength);
+        addMessage("Threat Value: " + NeverendingKnightsUnit.relativeEnemyThreatStrength);
 //        addMessage(" ");
 //        addMessage("Light Threats: " + NeverendingKnightsUnit.lightEnemyThreats);
 //        addMessage("Medium Threats: " + NeverendingKnightsUnit.mediumEnemyThreats);

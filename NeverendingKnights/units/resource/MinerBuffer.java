@@ -34,6 +34,7 @@ public class MinerBuffer extends NeverendingKnightsUnit {
 
     public void action()
     {
+
         if (Game.getTime() % 60 == 0){
             bestNodes = updateNodeChain(bestNodes);
         }

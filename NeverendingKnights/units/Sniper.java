@@ -6,6 +6,7 @@ import components.upgrade.Munitions;
 import components.upgrade.Shield;
 import components.weapon.energy.HeavyLaser;
 import components.weapon.energy.Laser;
+import engine.states.Game;
 import objects.entity.unit.Frame;
 import objects.entity.unit.Model;
 import objects.entity.unit.Style;
@@ -18,7 +19,7 @@ public class Sniper extends NeverendingKnightsUnit {
     {
 
         // max sniper equipment
-        if (getPlayer().getStoredResources() > 6) {
+        if (getPlayer().getStoredResources() > 6 && Game.getTime() > 180 * 60) {
             setFrame(Frame.ASSAULT); // 6 resources
             setModel(Model.ARTILLERY);
             setStyle(Style.WEDGE);

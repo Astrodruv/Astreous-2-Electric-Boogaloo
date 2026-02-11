@@ -44,31 +44,40 @@ public class RevelryHealer extends NeverendingKnightsUnit {
     }
 
     public void movement() {
-        if (getNearestEnemyThreat() != null) {
-            if (getDistance(getNearestEnemyThreat()) > getNearestEnemyThreat().getMaxRange() * 0.5f) {
+        if (getNearestAllyAttacker() != null) {
+            if (getNearestEnemyThreat() != null) {
+                if (getDistance(getNearestEnemyThreat()) > getNearestEnemyThreat().getMaxRange() * 0.5f) {
+                    if (unitToHeal != null) {
+                        if (getPlayer().isLeftPlayer()) moveTo(unitToHeal.getCenterX() - 100, unitToHeal.getCenterY());
+                        else if (getPlayer().isRightPlayer())
+                            moveTo(unitToHeal.getCenterX() + 100, unitToHeal.getCenterY());
+                    } else {
+                        if (getPlayer().isLeftPlayer())
+                            moveTo(getNearestAllyAttacker().getCenterX(), getNearestAllyAttacker().getCenterY());
+                        else if (getPlayer().isRightPlayer())
+                            moveTo(getNearestAllyAttacker().getCenterX(), getNearestAllyAttacker().getCenterY());
+                    }
+                } else {
+                    turnTo(getNearestEnemyThreat());
+                    turnAround();
+                    move();
+                }
+            } else {
                 if (unitToHeal != null) {
                     if (getPlayer().isLeftPlayer()) moveTo(unitToHeal.getCenterX() - 100, unitToHeal.getCenterY());
                     else if (getPlayer().isRightPlayer())
                         moveTo(unitToHeal.getCenterX() + 100, unitToHeal.getCenterY());
                 } else {
-                    if (getPlayer().isLeftPlayer()) moveTo(getNearestAllyAttacker().getCenterX(), getNearestAllyAttacker().getCenterY());
-                    else if (getPlayer().isRightPlayer()) moveTo(getNearestAllyAttacker().getCenterX(), getNearestAllyAttacker().getCenterY());
+                    if (getPlayer().isLeftPlayer())
+                        moveTo(getNearestAllyAttacker().getCenterX(), getNearestAllyAttacker().getCenterY());
+                    else if (getPlayer().isRightPlayer())
+                        moveTo(getNearestAllyAttacker().getCenterX(), getNearestAllyAttacker().getCenterY());
                 }
-            } else {
-                turnTo(getNearestEnemyThreat());
-                turnAround();
-                move();
             }
         }
         else{
-            if (unitToHeal != null) {
-                if (getPlayer().isLeftPlayer()) moveTo(unitToHeal.getCenterX() - 100, unitToHeal.getCenterY());
-                else if (getPlayer().isRightPlayer())
-                    moveTo(unitToHeal.getCenterX() + 100, unitToHeal.getCenterY());
-            } else {
-                if (getPlayer().isLeftPlayer()) moveTo(getNearestAllyAttacker().getCenterX(), getNearestAllyAttacker().getCenterY());
-                else if (getPlayer().isRightPlayer()) moveTo(getNearestAllyAttacker().getCenterX(), getNearestAllyAttacker().getCenterY());
-            }
+            moveTo(getHomeBase());
+            unitToHeal = getHomeBase();
         }
     }
 

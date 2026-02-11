@@ -1,7 +1,6 @@
 package teams.student.NeverendingKnights.units;
 
 import components.mod.offense.AchillesMod;
-import components.mod.offense.AresMod;
 import components.upgrade.*;
 import components.weapon.energy.Laser;
 import components.weapon.kinetic.Autocannon;
@@ -50,25 +49,35 @@ public class Destroyer extends NeverendingKnightsUnit {
     }
 
     public void movement() {
-        Unit raiderUnit = getNearestRaiderUnit();
-        if (isInBounds()) {
-            if (getHomeBase().getDistance(raiderUnit) < 5000 || getDistance(raiderUnit) < 3000) {
-                getWeapon(SpeedBoost.class).use();
-                if (getDistance(getNearestRaiderUnit()) > getMaxRange()) {
-                    moveTo(getNearestRaiderUnit());
-                    getWeaponTwo().use();
-                } else {
-                    turnTo(raiderUnit);
-                    turnAround();
-                    move();
-                }
-            } else {
-                moveTo(getFarthestWorker());
+        Unit raider = getMostDangerousRaider();
+
+        if (isInBounds()){
+            if (raider != null) {
+
             }
         }
-        else{
+        else {
             moveTo(getHomeBase());
         }
+//        Unit raiderUnit = getMostDangerousRaider();
+//        if (isInBounds()) {
+//            if (getHomeBase().getDistance(raiderUnit) < 5000 || getDistance(raiderUnit) < 3000) {
+//                getWeapon(SpeedBoost.class).use();
+//                if (getDistance(getMostDangerousRaider()) > getMaxRange()) {
+//                    moveTo(getMostDangerousRaider());
+//                    getWeaponTwo().use();
+//                } else {
+//                    turnTo(raiderUnit);
+//                    turnAround();
+//                    move();
+//                }
+//            } else {
+//                moveTo(getFarthestWorker());
+//            }
+//        }
+//        else{
+//            moveTo(getHomeBase());
+//        }
     }
 
     public void draw(Graphics g) {
