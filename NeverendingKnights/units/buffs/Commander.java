@@ -24,10 +24,7 @@ public class Commander extends NeverendingKnightsUnit {
     public void act() {
         if (getPlayer().isLeftPlayer()) moveTo(furthestTankX - 450, furthestTankY);
         else if (getPlayer().isRightPlayer()) moveTo(furthestTankX + 450, furthestTankY);
-//        if (getDistance(furthestTankX, furthestTankY) < 500) {
-//            getWeapon(CommandRelay.class).use();
-//        }
-        if (!getEnemiesInRadius(getMaxRange() * 4).isEmpty()){
+        if (getDistance(furthestTankX, furthestTankY) < 500) {
             getWeapon(CommandRelay.class).use();
         }
     }
@@ -36,6 +33,4 @@ public class Commander extends NeverendingKnightsUnit {
         g.setColor(Color.pink);
         g.drawLine(getCenterX(), getCenterY(), furthestTankX, furthestTankY);
     }
-
-    //Grandmaster
 }

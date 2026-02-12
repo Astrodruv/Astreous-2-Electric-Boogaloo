@@ -1,13 +1,11 @@
 package teams.student.NeverendingKnights.units;
 
 import components.mod.offense.AresMod;
-import components.upgrade.HeavyMunitions;
 import components.upgrade.HeavyPlating;
 import components.upgrade.Plating;
-import components.weapon.energy.HeavyLaser;
-import components.weapon.energy.Laser;
 import components.weapon.kinetic.Autocannon;
 import components.weapon.utility.AntiMissileSystem;
+import engine.states.Game;
 import objects.entity.unit.Frame;
 import objects.entity.unit.Model;
 import objects.entity.unit.Style;
@@ -17,10 +15,8 @@ public class Tank extends NeverendingKnightsUnit {
 
     public void design() {
 
-
-
         // max tank equipment
-        if (getPlayer().getStoredResources() >= 6) {
+        if (getPlayer().getStoredResources() >= 6 && Game.getTime() > 180 * 60) {
             setFrame(Frame.ASSAULT); // 6 resources
             setModel(Model.BASTION);
             setStyle(Style.CRESCENT);
@@ -53,9 +49,6 @@ public class Tank extends NeverendingKnightsUnit {
                 add(AresMod.class);
             }
         }
-
     }
-
-
 
 }

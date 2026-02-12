@@ -34,7 +34,7 @@ public class TankHealer extends NeverendingKnightsUnit {
     }
 
     public void movement() {
-        if (getNearestEnemyThreat() != null) {
+        if (getNearestEnemyThreat() != null && getNearestEnemyThreat() != getEnemyBase()) {
             if (getDistance(getNearestEnemyThreat()) > getNearestEnemyThreat().getMaxRange() * 0.5f) {
                 if (unitToHeal != null) {
                     if (getPlayer().isLeftPlayer()) moveTo(unitToHeal.getCenterX() - 300, unitToHeal.getCenterY());
