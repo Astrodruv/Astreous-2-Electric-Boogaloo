@@ -1,5 +1,6 @@
 package teams.student.NeverendingKnights;
 
+import engine.states.Game;
 import objects.entity.node.NodeManager;
 import objects.entity.unit.Unit;
 import objects.resource.ResourceManager;
@@ -45,6 +46,11 @@ public class NeverendingKnights extends Player
 
     public void strategy() {
         resourceGrabberCount = countMyUnits(ResourceGrabber.class);
+        if (Game.getTime() < 3 * 60){
+            if (countMyUnits(Destroyer.class) < 3){
+                buildUnit(Destroyer.class);
+            }
+        }
 
         if (countUnit(this, ResourceGrabber.class) < 2) {
             buildUnit(ResourceGrabber.class);

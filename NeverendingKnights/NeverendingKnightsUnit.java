@@ -206,8 +206,9 @@ public abstract class NeverendingKnightsUnit extends Unit
     }
 
     public void movement() {
-//        if (getNearestAllyAttacker() != null && getDistance(getNearestAllyAttacker()) > 75) {
-            boolean behindTanks = (getPlayer().isLeftPlayer() && getX() < (furthestTankX - (getMaxRange() * 0.65f))) || (getPlayer().isRightPlayer() && getX() > (furthestTankX + (getMaxRange() * 0.65f)));
+        float spreadAmount = 45;
+        if (getNearestAllyAttacker() != null && getDistance(getNearestAllyAttacker()) > spreadAmount){
+        boolean behindTanks = (getPlayer().isLeftPlayer() && getX() < (furthestTankX - (getMaxRange() * 0.65f))) || (getPlayer().isRightPlayer() && getX() > (furthestTankX + (getMaxRange() * 0.65f)));
             if (!tanks.isEmpty()) {
                 if ((!antiMissileTanks.isEmpty() && antiMissileTanks.contains(this)) || (antiMissileTanks.isEmpty() && tanks.contains(this))) {
                     if (getAlliesInRadius(1500).size() > myAttackers.size() * 0.75f || myMainPushStrength.equals("Very High")) { // ensures that tanks don't rush in and that tanks don't camp near base for no reason
@@ -306,12 +307,12 @@ public abstract class NeverendingKnightsUnit extends Unit
                     }
                 }
             }
-//        }
-//        else{
-//            turnTo(getNearestAllyAttacker());
-//            turnAround();
-//            move();
-//        }
+        }
+        else{
+            turnTo(getNearestAllyAttacker());
+            turnAround();
+            move();
+        }
     }
 
     public void calculateFurthestTankX(){
@@ -1284,7 +1285,7 @@ public abstract class NeverendingKnightsUnit extends Unit
 
         for (Unit u : getAllies()) {
             if (!u.hasComponent(Collector.class) && !u.hasComponent(Drillbeam.class)
-                && !(u instanceof Pest) && !(u instanceof Destroyer) && !u.hasWeapon(RepairBeam.class)){
+                && !(u instanceof Pest) && !(u instanceof Destroyer) && !u.hasWeapon(RepairBeam.class) && !(u.equals(this))){
                 allies.add(u);
             }
         }
@@ -1335,23 +1336,35 @@ public abstract class NeverendingKnightsUnit extends Unit
     }
 
     public Unit getNearestRaider(){
+        ArrayList<Unit> raiders = enemyRush;
+
+        raiders.sort((r1,r2) -> Float.compare(getDistance(r1), getDistance(r2)));
+
+        if (!raiders.isEmpty()) return raiders.getFirst();
+
         return null;
     }
 
     public Unit getMostDangerousRaider(){
         ArrayList<Unit> e = enemyRush;
 
-        float rushDist = Float.MAX_VALUE;
+        float myDist = 0;
+        float workerDist = Float.MAX_VALUE;
         Unit dangerousRaider = null;
 
         for (Unit u : myWorkers){
-            if (enemyRush.contains(u.getNearestEnemy()) && u.getDistance(u.getNearestEnemy()) < rushDist){
-                rushDist = u.getDistance(getNearestEnemy());
+            if (enemyRush.contains(u.getNearestEnemy()) && u.getDistance(u.getNearestEnemy()) < workerDist){
+                workerDist = u.getDistance(getNearestEnemy());
                 dangerousRaider = u.getNearestEnemy();
             }
         }
 
-        return dangerousRaider;
+        myDist = getDistance(getNearestRaider());
+
+//        if (myDist > workerDist){
+            return dangerousRaider;
+//        }
+//
     }
 
     public Unit getFarthestWorker(){

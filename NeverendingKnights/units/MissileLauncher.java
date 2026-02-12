@@ -24,7 +24,7 @@ public class MissileLauncher extends NeverendingKnightsUnit {
 
 
         // max missile launcher equipment
-        if (getPlayer().getStoredResources() >= 6 && Game.getTime() > 180 * 60) {
+        if (getPlayer().getStoredResources() >= 6 && Game.getTime() > 300 * 60) {
             if (!hasAntiMissiles()) {
                 setFrame(Frame.ASSAULT);
                 setModel(Model.ARTILLERY);

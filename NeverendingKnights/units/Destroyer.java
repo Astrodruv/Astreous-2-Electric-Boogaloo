@@ -15,7 +15,7 @@ import teams.student.NeverendingKnights.NeverendingKnightsUnit;
 
 public class Destroyer extends NeverendingKnightsUnit {
 
-    private Unit raiderUnit;
+    private Unit raider;
 
     public void design(){
         setFrame(Frame.MEDIUM);
@@ -35,7 +35,7 @@ public class Destroyer extends NeverendingKnightsUnit {
             add(Shield.class);
         }
 
-        raiderUnit = null;
+        raider = null;
     }
 
     public void action(){
@@ -49,39 +49,34 @@ public class Destroyer extends NeverendingKnightsUnit {
     }
 
     public void movement() {
-        Unit raider = getMostDangerousRaider();
-
-        if (isInBounds()){
-            if (raider != null) {
-
-            }
+        Unit raiderUnit = getMostDangerousRaider();
+        if (raiderUnit == null){
+            moveTo(getNearestEnemyWorker());
         }
         else {
-            moveTo(getHomeBase());
+            if (isInBounds()) {
+                if (getHomeBase().getDistance(raiderUnit) < 5000 || getDistance(raiderUnit) < 3000) {
+                    getWeapon(SpeedBoost.class).use();
+                    if (getDistance(getMostDangerousRaider()) > getMaxRange()) {
+                        moveTo(getMostDangerousRaider());
+                        getWeaponTwo().use();
+                    } else {
+                        turnTo(raiderUnit);
+                        turnAround();
+                        move();
+                    }
+                } else {
+                    moveTo(getFarthestWorker());
+                }
+            } else {
+                moveTo(getHomeBase());
+            }
         }
-//        Unit raiderUnit = getMostDangerousRaider();
-//        if (isInBounds()) {
-//            if (getHomeBase().getDistance(raiderUnit) < 5000 || getDistance(raiderUnit) < 3000) {
-//                getWeapon(SpeedBoost.class).use();
-//                if (getDistance(getMostDangerousRaider()) > getMaxRange()) {
-//                    moveTo(getMostDangerousRaider());
-//                    getWeaponTwo().use();
-//                } else {
-//                    turnTo(raiderUnit);
-//                    turnAround();
-//                    move();
-//                }
-//            } else {
-//                moveTo(getFarthestWorker());
-//            }
-//        }
-//        else{
-//            moveTo(getHomeBase());
-//        }
     }
 
     public void draw(Graphics g) {
         g.setColor(Color.yellow);
-        if (raiderUnit != null) g.drawLine(getCenterX(), getCenterY(), raiderUnit.getCenterX(), raiderUnit.getCenterY());
+        if (raider != null) g.drawLine(getCenterX(), getCenterY(), raider.getCenterX(), raider.getCenterY());
+
     }
 }

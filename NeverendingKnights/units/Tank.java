@@ -16,7 +16,7 @@ public class Tank extends NeverendingKnightsUnit {
     public void design() {
 
         // max tank equipment
-        if (getPlayer().getStoredResources() >= 6 && Game.getTime() > 180 * 60) {
+        if (getPlayer().getStoredResources() >= 6 && Game.getTime() > 300 * 60) {
             setFrame(Frame.ASSAULT); // 6 resources
             setModel(Model.BASTION);
             setStyle(Style.CRESCENT);

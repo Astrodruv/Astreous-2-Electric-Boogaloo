@@ -19,7 +19,7 @@ public class Sniper extends NeverendingKnightsUnit {
     {
 
         // max sniper equipment
-        if (getPlayer().getStoredResources() > 6 && Game.getTime() > 180 * 60) {
+        if (getPlayer().getStoredResources() > 6 && Game.getTime() > 300 * 60) {
             setFrame(Frame.ASSAULT); // 6 resources
             setModel(Model.ARTILLERY);
             setStyle(Style.WEDGE);
