@@ -29,21 +29,30 @@ public class MinerBuffer extends NeverendingKnightsUnit {
         add(AthenaMod.class);
 
         bestNode = null;
-        bestNodes = findBestChainOfNodes();
+        if (findBestChainOfNodes() != null) {
+            bestNodes = new ArrayList<>(findBestChainOfNodes());
+        }
+        else bestNodes = null;
     }
 
     public void action()
     {
-
-        if (Game.getTime() % 60 == 0){
-            bestNodes = updateNodeChain(bestNodes);
+        if (isDead()){
+            bestNode = null;
+            bestNodes.clear();
         }
+        else {
+            if (Game.getTime() % 60 == 0) {
+                if (bestNodes != null) {
+                    bestNodes = new ArrayList<>(updateNodeChain(bestNodes));
+                }
+            }
 
-        if (bestNodes != null && !bestNodes.isEmpty()) bestNode = bestNodes.getFirst();
-        else bestNode = getNearestNode();
+            if (bestNodes != null && !bestNodes.isEmpty()) bestNode = bestNodes.getFirst();
+            else bestNode = getNearestNode();
 
-        if (getNearestEnemyThreat() != null) {
-            Unit threat = getNearestEnemyThreat();
+            if (getNearestEnemyThreat() != null) {
+                Unit threat = getNearestEnemyThreat();
             if (getDistance(threat) > threat.getMaxRange() * 1.25f) {
                 moveTo(bestNode);
                 if (getDistance(bestNode) < 150) getWeaponOne().use();
@@ -56,13 +65,14 @@ public class MinerBuffer extends NeverendingKnightsUnit {
                     moveTo(getHomeBase());
                 }
             }
-        }
+            }
 
-        if (bestNode != null && bestNode.isDead()) bestNodes.remove(bestNode);
+            if (bestNode != null && bestNode.isDead()) bestNodes.remove(bestNode);
 
-        if (getNearestNode() == null){
-            moveTo(getEnemyBase());
-            getWeaponOne().use(getEnemyBase());
+            if (getNearestNode() == null) {
+                moveTo(getEnemyBase());
+                getWeapon(CommandRelay.class).use();
+            }
         }
     }
 

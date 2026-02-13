@@ -1,5 +1,7 @@
 package teams.student.NeverendingKnights.units;
 
+import components.mod.offense.HadesMod;
+import components.mod.offense.NyxMod;
 import components.mod.offense.PoseidonMod;
 import components.upgrade.HeavyMunitions;
 import components.upgrade.Munitions;
@@ -24,17 +26,32 @@ public class Sniper extends NeverendingKnightsUnit {
             setModel(Model.ARTILLERY);
             setStyle(Style.WEDGE);
 
-            add(HeavyLaser.class);
-            add(Laser.class);
-            add(HeavyMunitions.class);
+            if (enemyHealers.size() > getEnemies().size() * 0.065f) { // If there are at least 6.5% healers in the fleet, equip hades
+                add(HeavyLaser.class);
+                add(Laser.class);
+                add(Munitions.class);
+                add(HadesMod.class);
+            }
+            else{
+                add(HeavyLaser.class);
+                add(Laser.class);
+                add(HeavyMunitions.class);
+            }
         }
         else{
             setFrame(Frame.HEAVY);
             setModel(Model.ARTILLERY);
             setStyle(Style.WEDGE);
 
-            add(HeavyLaser.class);
-            add(HeavyMunitions.class);
+            if (enemyHealers.size() > getEnemies().size() * 0.065f) {
+                add(HeavyLaser.class);
+                add(Munitions.class);
+                add(HadesMod.class);
+            }
+            else{
+                add(HeavyLaser.class);
+                add(HeavyMunitions.class);
+            }
         }
 
 

@@ -57,7 +57,7 @@ public class Pest extends NeverendingKnightsUnit
 //        }
 
         unitToAttack = getIsolatedEnemyWorker(5000);
-        passByUnit = getLowestAttackingEnemy(getWeaponOne().getMaxRange() * 2);
+//        passByUnit = getLowestAttackingEnemy(getWeaponOne().getMaxRange() * 2);
 
         if(getHomeBase().getDistance(getEnemyBase()) < 6000 || getEnemyBase().getPercentEffectiveHealth() < .5f) {
             stage = "Attacking";

@@ -12,7 +12,11 @@ import engine.states.Game;
 import objects.entity.unit.Frame;
 import objects.entity.unit.Model;
 import objects.entity.unit.Style;
+import org.newdawn.slick.Color;
+import org.newdawn.slick.Graphics;
 import teams.student.NeverendingKnights.NeverendingKnightsUnit;
+
+import java.awt.*;
 
 public class MissileLauncher extends NeverendingKnightsUnit {
     private String stage;
@@ -33,20 +37,27 @@ public class MissileLauncher extends NeverendingKnightsUnit {
                 add(Missile.class);
                 add(Munitions.class);
                 double chance = Math.random();
-                if (chance < 0.33) {
-                    add(CerberusMod.class);
-                } else if (chance < 0.66){
-                    add(NyxMod.class);
+                if (enemyHealers.size() > getEnemies().size() * 0.065f) { // If there are at least 6.5% healers in the fleet, equip more cerberus
+                    if (chance < 0.75f) {
+                        add(CerberusMod.class);
+                    } else{
+                        add(NyxMod.class);
+                    }
                 }
                 else{
-                    add(ArtemisMod.class);
+                    if (chance < 0.5f) {
+                        add(CerberusMod.class);
+                    } else{
+                        add(NyxMod.class);
+                    }
                 }
             }
             else{
                 setFrame(Frame.ASSAULT);
                 setModel(Model.ARTILLERY);
                 setStyle(Style.DAGGER);
-                add(HeavyLaser.class); // Possibly switch to 2 lasers
+                add(Laser.class);
+                add(Laser.class);// Possibly switch to 2 lasers
                 add(HeavyMunitions.class);
                 add(PoseidonMod.class);
             }
@@ -60,13 +71,19 @@ public class MissileLauncher extends NeverendingKnightsUnit {
                 add(Missile.class);
                 add(Munitions.class);
                 double chance = Math.random();
-                if (chance < 0.33) {
-                    add(CerberusMod.class);
-                } else if (chance < 0.66){
-                    add(NyxMod.class);
+                if (enemyHealers.size() > getEnemies().size() * 0.065f) {
+                    if (chance < 0.75f) {
+                        add(CerberusMod.class);
+                    } else{
+                        add(NyxMod.class);
+                    }
                 }
                 else{
-                    add(ArtemisMod.class);
+                    if (chance < 0.5) {
+                        add(CerberusMod.class);
+                    } else{
+                        add(NyxMod.class);
+                    }
                 }
             }
             else{
@@ -80,5 +97,9 @@ public class MissileLauncher extends NeverendingKnightsUnit {
         }
     }
 
-
+    public void draw(Graphics g) {
+        super.draw(g);
+        g.setColor(Color.pink);
+        if (currentTarget != null) g.drawOval(currentTarget.getCenterX() - 75, currentTarget.getCenterY() - 75, 125, 125);
+    }
 }
